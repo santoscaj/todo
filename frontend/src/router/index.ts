@@ -21,16 +21,22 @@ const routes: RouteConfig[] = [
     component: () => import('../views/Register.vue'),
   },
   {
-    path: '/:user_id/todos',
+    path: '/:username/todos',
     name: 'Todos',
     component: () => import('../views/Todos.vue'),
   },
   {
-    path: '/:user_id',
+    path: '/users',
+    name: 'Users',
+    component: () => import('../views/Users.vue'),
+  },
+  {
+    path: '/:username',
     name: 'Profile',
     component: () => import('../views/Profile.vue'),
   },
 ];
+
 
 const router = new VueRouter({
   mode: 'history',
@@ -39,3 +45,5 @@ const router = new VueRouter({
 });
 
 export default router;
+
+export const myRoutes = routes

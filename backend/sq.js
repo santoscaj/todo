@@ -1,5 +1,5 @@
 const Sequelize = require('sequelize')
-const { users} = require('./Default')
+const { users} = require('./utils/Default')
 const sequelize = new Sequelize('todos_db','postgres','admin',{
     host: 'localhost',
     dialect: 'postgres'
@@ -82,4 +82,4 @@ sequelize.sync()
 
 addDefaultUsers()
 
-module.exports = { sequelize }
+module.exports = { User, Todo }

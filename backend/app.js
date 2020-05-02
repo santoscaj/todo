@@ -4,7 +4,7 @@ const {User, Todo} = require('./sq')
 
 
 const cleanObject = require('./utils/cleanData')
-const desiredUserFields = ['id','username', 'email','password','is_admin', 'firstName','lastName']
+const desiredUserFields = ['id','username', 'email','password','is_admin', 'firstName','lastName', 'image_link']
 const desiredTodoFields = ['id', 'title','content']
 const desiredFields = [...desiredUserFields,{todos:[...desiredTodoFields]}]
 

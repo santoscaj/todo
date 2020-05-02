@@ -9,6 +9,10 @@
           FormItem(label="password")
             Input(type="password" password v-model="password")
         Button(type="error")  Submit
+        div.register
+          a forgot password
+          p No account? 
+            a Sign Up here
 </template>
 
 <script>
@@ -29,4 +33,10 @@ export default class Login extends Vue{
 
 .card
   width: 300px
+
+.register
+  margin: 8px
+  padding: 5px
+  font-size: 11px
+
 </style>

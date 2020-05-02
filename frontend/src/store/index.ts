@@ -35,7 +35,7 @@ export class MyStore extends VuexModule{
     return function(username: string){
       return self.users
       .filter((u:User)=>u.username === username)
-      .map((u:User)=>u.todos)[0]
+      .map((u:User)=>u.todos)[0]    
     }
   }  
 

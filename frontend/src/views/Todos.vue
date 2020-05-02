@@ -9,10 +9,10 @@
         DropdownMenu(slot="list")
           DropdownItem(v-for="item of dropdownValues" :key="item") 
             p(@click="modifyDropdownValue(item)" ) {{item}}
-      div.cards-area
-        Card(v-for="todo in todos" :key="todo.id" style="width: 450px") 
-          p(slot="title") {{todo.title}}
-          p(v-for="item in todo.content" :key="item") {{item}}
+    div.cards-area
+      Card.card(v-for="todo in todos" :key="todo.id") 
+        p(slot="title") {{todo.title}}
+        p(v-for="item in todo.content" :key="item") {{item}}
     div.my-flex
 
 </template>
@@ -44,8 +44,10 @@ export default class Todos extends Vue {
 
 
 <style lang="sass" scoped>
+
 .header
   display:flex
+  margin: 20px
 
 .header>*
   width: auto
@@ -55,9 +57,16 @@ export default class Todos extends Vue {
   flex-direction: column
 
 .cards-area
+  position: absolute
+  width: 100%
+  heigth: 100%
   display: grid
-  grid-gap: 10px
-  grid-template-rows: repeat(auto-fill, minmax(100px, 200px))
-  grid-template-columns: repeat(auto-fill, minmax(100px, 400px))
+  grid-template-rows: repeat(auto-fill, minmax(115px, 200px))
+  grid-template-columns: repeat(auto-fill, minmax(100px, 350px))
+  grid-gap: 20px
+
+.card
+  width:100%
+  height:100%
 
 </style>

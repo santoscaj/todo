@@ -13,8 +13,8 @@
           FormItem(label="Confirm Password" prop="passwordCheck")
             Input(type="password" password v-model="myForm.passwordCheck")
           FormItem
-            Button(@click="handleSubmit()" type="primary")  Reset
-            Button(@click="handleReset('myForm')")  Submit
+            Button(@click="handleReset('myForm')" type="primary")  Reset
+            Button(@click="handleSubmit()")  Submit
 </template>
 
 <script>

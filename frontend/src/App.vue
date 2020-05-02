@@ -1,5 +1,6 @@
 <template lang="pug">
   div#app
+    Header
     div routes only for testing purposes
       div.flex
         router-link(v-for="r of routes" :key="r" :to="r") {{r}}
@@ -8,7 +9,7 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
-import HelloWorld from './components/HelloWorld.vue';
+import Header from './components/Header.vue';
 import axios from 'axios'
 // import {vmx} from './store'
 import {vxm} from './store'
@@ -19,7 +20,7 @@ let todosURI = 'http://localhost:3000/todos'
 
 @Component({
   components: {
-    HelloWorld,
+    Header,
   },
 })
 export default class App extends Vue {
@@ -39,21 +40,20 @@ export default class App extends Vue {
 }
 </script>
 
-<style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
+<style lang="sass">
+#app 
+  font-family: Avenir, Helvetica, Arial, sans-serif
+  -webkit-font-smoothing: antialiased
+  -moz-osx-font-smoothing: grayscale
+  text-align: center
+  color: #2c3e50
+  box-sizing: border-box
 
-.flex{
-  display: flex;
-  justify-content: space-between;
-  padding:10px;
-  border-bottom: 1px solid black;
-}
+
+flex
+  display: flex
+  justify-content: space-between
+  padding:10px
+  border-bottom: 1px solid black
 
 </style>

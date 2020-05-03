@@ -44,7 +44,6 @@ export default class Profile extends Vue {
 
   updatedPassword(x){
     this.display = false
-    console.log(x)
   }
 }
 </script>

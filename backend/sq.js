@@ -1,8 +1,18 @@
+require('dotenv').config()
+const bcrypt = require('bcrypt')
 const Sequelize = require('sequelize')
 const { users} = require('./utils/Default')
+
+
+const myLoggingFunction = function(message){
+  if(process.env.LOG_DB==='true')
+    console.log(message)
+}
+
 const sequelize = new Sequelize('todos_db','postgres','admin',{
     host: 'localhost',
-    dialect: 'postgres'
+    dialect: 'postgres',
+    logging: myLoggingFunction
 })
 
 async function addDefaultUsers(){
@@ -12,8 +22,8 @@ async function addDefaultUsers(){
       for (let todo of user.todoList){
         await Todo.findOrCreate({where:{...todo, user_id: usr[0].dataValues.id}})
       }
-    }catch(e){
-      console.error(e)
+    }catch(err){
+      console.error(err)
     }
 
   }
@@ -22,6 +32,8 @@ async function addDefaultUsers(){
 sequelize
   .authenticate()
   .then(() => {
+    if(process.env.LOG_DB==='false')
+      console.log("To see DB queries change environmental variable LOG_DB to 'true'");
     console.log('Connection has been established successfully.');
   })
   .catch(err => {
@@ -31,11 +43,13 @@ sequelize
 const User = sequelize.define('user', {
   username: {
     type: Sequelize.STRING,
-    allowNull: false
+    allowNull: false,
+    unique: true
   },
   email: {
     type: Sequelize.STRING,
-    allowNull: false
+    allowNull: false,
+    unique: true
   },
   password: {
     type: Sequelize.STRING,
@@ -43,7 +57,7 @@ const User = sequelize.define('user', {
   },
   is_admin: {
     type: Sequelize.BOOLEAN,
-    allowNull: false
+    defaultValue: false
   },
   image_link:{
     type: Sequelize.STRING
@@ -85,4 +99,4 @@ sequelize.sync()
 
 addDefaultUsers()
 
-module.exports = { User, Todo }
+module.exports = { User, Todo, Sequelize }

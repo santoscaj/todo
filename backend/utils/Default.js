@@ -1,8 +1,13 @@
+/**
+ * Default non-admin users have password 1234
+ * Default admin users have password admin
+ */
+
 const users = [
     {userData:{
         username: "santoscaj",
         email: "santoscaj@yahoo.com",
-        password: "1234",
+        password: "$2b$05$K4gfqQFpfEugiH.vQBOp7uTkyvB4AYZhMh8Ydw2wakB5cspXhi60O",
         is_admin: false,
         firstName: "",
         lastName: "",
@@ -19,7 +24,7 @@ const users = [
     userData:{
         username: "cuzox",
         email: "cuzox@yahoo.com",
-        password: "0123",
+        password: "$2b$05$K4gfqQFpfEugiH.vQBOp7uTkyvB4AYZhMh8Ydw2wakB5cspXhi60O",
         is_admin: false,
         firstName: "",
         lastName: "",
@@ -35,13 +40,13 @@ const users = [
     ]},
     {
     userData:{
-        username: "admin",
+        username: "myadmin",
         email: "admin@admin.com",
         password: "admin",
         is_admin: true,
         firstName: "",
         lastName: "",
-        image_link:"https://avatars3.githubusercontent.com/u/45974053?s=460&v=4"
+        image_link:"$2b$05$boJXqB9QXp.QKx.7qrTo0.zQViQbKznUPVkMuLJrQb5NY7f3DWK1G"
     },todoList:[
         {
             title: "fruits", 

@@ -40,8 +40,6 @@ export default class Login extends Vue{
   }
 
   created(){
-    console.log(vxm.user.users)
-
   }
 }
 

@@ -29,7 +29,6 @@ export default class Todos extends Vue {
 
   get todos(){
     let user = this.$route.params.username
-    console.log(vxm.user.getUserTodos(user))
     return vxm.user.getUserTodos(user).map(x=>{
       if(x)
         return {...x, content: x.content.split('\n')}

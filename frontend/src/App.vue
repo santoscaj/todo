@@ -33,6 +33,7 @@ export default class App extends Vue {
       vxm.user.setUsers(resUsers.data)
     }
     catch(e){
+      vxm.user.setUsers([])
       console.error(e)
     }
   }
@@ -50,7 +51,7 @@ export default class App extends Vue {
   box-sizing: border-box
 
 
-flex
+.flex
   display: flex
   justify-content: space-between
   padding:10px

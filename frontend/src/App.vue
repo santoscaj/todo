@@ -11,12 +11,9 @@
 import { Component, Vue } from 'vue-property-decorator';
 import Header from './components/Header.vue';
 import axios from 'axios'
-// import {vmx} from './store'
-import {vxm} from './store'
+import {vxm, User } from './store'
+import config from './config'
 import {myRoutes} from './router'
-
-let usersURI = 'http://localhost:3000/users'
-let todosURI = 'http://localhost:3000/todos'
 
 @Component({
   components: {
@@ -27,15 +24,35 @@ export default class App extends Vue {
   get routes(){
     return myRoutes.map(r=>r.path.replace(/:\w*/,'santoscaj'))
   }
+  
+  async beforeCreate(){
+    // let token = localStorage.getItem('token')
+    // let username = localStorage.getItem('username')
+    // try{
+    //   if(token){
+
+    //     //@ts-ignore
+    //     let activeUser : User = await axios({
+    //       method:'get', 
+    //       url: config.server.TOKENS_URL,
+    //       data:{username, token}
+    //       })
+    //     vxm.user.setActiveUser(activeUser)
+    //   }
+    // }catch(e){
+    //   console.error(e)
+    // }
+  }
+
   async mounted(){
-    try{
-      let resUsers = await axios.get(usersURI)
-      vxm.user.setUsers(resUsers.data)
-    }
-    catch(e){
-      vxm.user.setUsers([])
-      console.error(e)
-    }
+    // try{
+    //   let resUsers = await axios.get(config.server.USERS_URL)
+    //   vxm.user.setUsers(resUsers.data)
+    // }
+    // catch(e){
+    //   vxm.user.setUsers([])
+    //   console.error(e)
+    // }
   }
 
 }

@@ -40,13 +40,13 @@ const users = [
     ]},
     {
     userData:{
-        username: "myadmin",
+        username: "admin",
         email: "admin@admin.com",
-        password: "admin",
+        password: "$2b$05$boJXqB9QXp.QKx.7qrTo0.zQViQbKznUPVkMuLJrQb5NY7f3DWK1G",
         is_admin: true,
         firstName: "",
         lastName: "",
-        image_link:"$2b$05$boJXqB9QXp.QKx.7qrTo0.zQViQbKznUPVkMuLJrQb5NY7f3DWK1G"
+        image_link:"https://avatars3.githubusercontent.com/u/45974053?s=460&v=4"
     },todoList:[
         {
             title: "fruits", 

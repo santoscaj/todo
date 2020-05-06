@@ -9,14 +9,14 @@ const VuexModule = createModule({
   strict: false,
 })
 
-interface Todo{
+export interface Todo{
   id: number;
   title: string;
   content:string;
   user_id: number;
 }
 
-interface User{
+export interface User{
   id: number | string;
   username: string;
   password: string;
@@ -25,11 +25,18 @@ interface User{
   todos?: Todo[];
   firstName?: string | undefined | null;
   lastName: string | undefined | null;
+  image_link?: string;
 }
 
 export class MyStore extends VuexModule{
   users = []
-  
+  activeUser : User | null = null
+  activeUserTodos : Todo | null = null
+
+  get userTodos(){
+    return this.activeUserTodos
+  }
+
   get getUserTodos(){
     const self = this
     return function(username: string){
@@ -41,6 +48,10 @@ export class MyStore extends VuexModule{
 
   @mutation setUsers(data : any){
     this.users = data
+  }
+
+  @mutation setActiveUser(user:User){
+    this.activeUser = user
   }
 
 }

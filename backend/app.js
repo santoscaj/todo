@@ -8,4 +8,4 @@ const cors = require('cors')
 app.use(cors({origin:'http://localhost:8080'}))
 app.use(router)
 
-app.listen(3000)
+app.listen( process.env.PORT || 3000)

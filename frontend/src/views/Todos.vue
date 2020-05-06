@@ -1,38 +1,82 @@
 <template lang="pug">
   div
     h1 This is Todos page 
-    div.header
-      Input.search(suffix="ios-search") 
-      Dropdown.dropdown
-        Button(type="primary") Item Count
-          Icon(type="ios-arrow-down")
-        DropdownMenu(slot="list")
-          DropdownItem(v-for="item of dropdownValues" :key="item") 
-            p(@click="modifyDropdownValue(item)" ) {{item}}
-    div.cards-area
-      Card.card(v-for="todo in todos" :key="todo.id") 
-        p(slot="title") {{todo.title}}
-        p(v-for="item in todo.content" :key="item") {{item}}
-    div.my-flex
+    div(v-if="userHasAccess")
+      div.cards-area
+        Card.card(v-for="todo in todos" :key="todo.id") 
+          p(slot="title") {{todo.title}}
+          p(v-for="item in todo.content" :key="item") {{item}}
+      div.my-flex
+    ErrorPage(v-else :status="status" :statusMessage="statusMessage")
 
 </template>
 
 <script>
 import {Component, Vue} from 'vue-property-decorator'
+import config from '@/config'
 import {vxm} from '@/store'
+import axios from 'axios'
+import ErrorPage from '@/components/ErrorPage.vue'
 
-@Component
+@Component({components:{ErrorPage}})
 export default class Todos extends Vue {
-  search = ""
-  dropdown = 5
-  dropdownValues = [5,10,20,50,100]
+  user = null
+  statusMessage = ''
+  status = ''
 
+  get serverURL(){
+    return config.server.BASE_URL
+  }
+  get activeUser(){
+    return localStorage.getItem('username')  
+  }
+  get activeToken(){
+    return localStorage.getItem('token')  
+  }
+  get pageOwner(){
+    return this.$router
+  }
+  get userHasAccess(){
+    return (this.status == 200 || this.status==201)
+  }
   get todos(){
-    let user = this.$route.params.username
-    return vxm.user.getUserTodos(user).map(x=>{
+    if (!this.user)
+      return []
+    return this.user.todos
+		.map(x=>{
       if(x)
         return {...x, content: x.content.split('\n')}
     })
+  }
+
+  async beforeUpdate(){
+    console.log('before Update')
+  }
+
+  async beforeCreate(){
+    let self = this
+    
+    axios.interceptors.response.use(
+      response=>{
+        this.status = response.status
+        this.user = response.data
+        console.log('data',response)
+      },
+      err=>{
+        this.status = err.response.status
+        this.statusMessage = err.response.statusText
+      })
+
+    let accessToken = localStorage.getItem('token') 
+    let pageOwner = this.$route.params.username
+
+    try{
+      await axios.post(`${config.server.USERS_URL}/${pageOwner}/todos`,{
+          pageOwner,
+          accessToken
+      })
+    }catch(x){}
+
   }
 
   modifyDropdownValue(newValue){

@@ -5,10 +5,10 @@
       Card.card
         Form
           FormItem(label="username")
-            Input(prefix="ios-contact" placeholder="Enter name")
+            Input(prefix="ios-contact" placeholder="Enter name" v-model="username")
           FormItem(label="password")
             Input(type="password" password v-model="password")
-        Button(type="error")  Submit
+        Button(type="error" @click="submitPassword()")  Submit
         div.register
           a forgot password
           p No account? 
@@ -17,11 +17,29 @@
 
 <script>
 import {Component, Vue} from 'vue-property-decorator'
+import config from '@/config.js'
+import {vxm} from '@/store'
+import axios from 'axios'
 
 @Component
 export default class Login extends Vue{
   username = ''
   password = ''
+
+  async submitPassword(){
+    self = this
+    try{
+      let response = await axios.post(config.server.LOGIN_URL, {username : self.username, password :self.password})
+      let token = response.data.accessToken
+      let username = response.data.user.username
+      let activeUser = response.data.user
+      localStorage.setItem('token', token)
+      this.$router.replace( `${config.client.USERS_URL}/${username}/todos`)
+    }catch(e){
+      console.error(e)
+    }
+  }
+
 }
 
 </script>

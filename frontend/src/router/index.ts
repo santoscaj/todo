@@ -64,7 +64,6 @@ const routes: RouteConfig[] = [
   },
 ];
 
-
 const router = new VueRouter({
   mode: 'history',
   base: process.env.BASE_URL,
@@ -75,8 +74,19 @@ let logged_in = true
 let admin_user = false
 
 router.beforeEach((to, from, next)=>{
+  if(to.matched.some(page=> page.meta.requiresAuth)){
+    if(localStorage.getItem('token'))
+      next()
+    else{
+      if(from.path == '/login')
+        next(false)
+      next({path:'/login'})
+    }
+  }else{
+    next()
+  }
+
   // console.log('printing to: ',to)
-  next()
   return 
   
 })

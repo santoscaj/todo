@@ -11,7 +11,7 @@ const users = [
         is_admin: false,
         firstName: "",
         lastName: "",
-        image_link: "https://i1.sndcdn.com/avatars-000105344650-iuxeec-t500x500.jpg"
+        image_link: "https://i1.sndcdn.com/avatars-000105344650-iuxeec-t500x500.jpg",
     },todoList:
         [{
             title: "house", 

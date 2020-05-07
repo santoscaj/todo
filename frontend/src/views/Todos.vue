@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import {Component, Vue} from 'vue-property-decorator'
+import {Component, Vue, Watch} from 'vue-property-decorator'
 import config from '@/config'
 import {vxm} from '@/store'
 import axios from 'axios'
@@ -21,8 +21,8 @@ import ErrorPage from '@/components/ErrorPage.vue'
 @Component({components:{ErrorPage}})
 export default class Todos extends Vue {
   user = null
-  statusMessage = ''
-  status = ''
+  statusMessage = 'default'
+  status = 'default'
 
   get serverURL(){
     return config.server.BASE_URL
@@ -34,7 +34,7 @@ export default class Todos extends Vue {
     return localStorage.getItem('token')  
   }
   get pageOwner(){
-    return this.$router
+    return this.$route.params.username
   }
   get userHasAccess(){
     return (this.status == 200 || this.status==201)
@@ -50,33 +50,34 @@ export default class Todos extends Vue {
   }
 
   async beforeUpdate(){
-    console.log('before Update')
   }
 
-  async beforeCreate(){
-    let self = this
-    
-    axios.interceptors.response.use(
-      response=>{
-        this.status = response.status
-        this.user = response.data
-        console.log('data',response)
-      },
-      err=>{
-        this.status = err.response.status
-        this.statusMessage = err.response.statusText
-      })
+  @Watch('pageOwner')
+  updatePageInfo(){
+    this.getUser()
+  }
 
+  created(){
+    this.getUser()
+
+  }
+
+  async getUser(){
     let accessToken = localStorage.getItem('token') 
     let pageOwner = this.$route.params.username
-
     try{
-      await axios.post(`${config.server.USERS_URL}/${pageOwner}/todos`,{
+      const response = await axios.post(`${config.server.USERS_URL}/${pageOwner}/todos`,{
           pageOwner,
           accessToken
       })
-    }catch(x){}
 
+      this.user = response.data
+      this.status = response.status
+    }catch(x){
+      console.log(x)
+      this.status = x.response.status
+      this.statusMessage = x.response.statusMessage
+    }
   }
 
   modifyDropdownValue(newValue){

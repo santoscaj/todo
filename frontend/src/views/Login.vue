@@ -33,7 +33,11 @@ export default class Login extends Vue{
       let token = response.data.accessToken
       let username = response.data.user.username
       let activeUser = response.data.user
+      
+      vxm.user.setActiveUser(activeUser)
+      
       localStorage.setItem('token', token)
+      localStorage.setItem('username', username)
       this.$router.replace( `${config.client.USERS_URL}/${username}/todos`)
     }catch(e){
       console.error(e)

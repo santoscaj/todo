@@ -1,8 +1,8 @@
 <template lang="pug">
-    Menu(mode="horizontal") Alberto Santos
+    Menu(mode="horizontal") {{activeUser.username}}
         Submenu(mode="vertical" name="menu")
             template(slot="title")
-                Avatar(size="large" src="https://www.pngitem.com/pimgs/m/487-4876417_link-head-png-toon-link-face-png-transparent.png")
+                Avatar(size="large" :src="activeUser.image_link")
             MenuItem(name="user_config") Config
             MenuItem(name="manage_users") Management 
             MenuItem(name="logout") Logout
@@ -11,10 +11,17 @@
 
 <script>
 import {Component, Vue, PropSync, Watch} from 'vue-property-decorator'
+import {vxm} from '@/store'
 
 @Component
 export default class Password extends Vue{
-
+    get activeUser(){
+        let emptyUser = {
+            username : '',
+            image_link : '',
+        }
+        return vxm.user.activeUser || emptyUser
+    }
 }
 </script>
 

@@ -18,6 +18,7 @@ import { vxm } from '@/store'
 
 @Component
 export default class Login extends Vue{
+
   get columns(){
     return [
       {title:'id', key:'id', width: 60}, 
@@ -31,7 +32,7 @@ export default class Login extends Vue{
     return vxm.user.users.map(obj=>{
       return {
         id: obj.id,
-        username: obj.username,
+        username: obj.username, 
         email: obj.email, 
         admin: obj.is_admin === true? 'enabled': 'disabled'
       }

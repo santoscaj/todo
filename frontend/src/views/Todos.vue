@@ -1,6 +1,5 @@
 <template lang="pug">
   div
-    h1 This is Todos page 
     div(v-if="!errorOccurred")
       div.cards-area
         Card.card(v-for="todo in todos" :key="todo.id") 
@@ -17,8 +16,9 @@ import Config from '@/config'
 import {vxm} from '@/store'
 import axios from 'axios'
 import ErrorPage from '@/components/ErrorPage.vue'
+import AxiosRequest from '@/mixins/axiosRequest'
 
-@Component({components:{ErrorPage}})
+@Component({components:{ErrorPage},  mixins: [AxiosRequest]} )
 export default class Todos extends Vue {
   user = null
   statusMessage = 'default'
@@ -53,21 +53,9 @@ export default class Todos extends Vue {
   }
 
   async getUser(){
-    let token = vxm.user.usertoken    
-    let config = {headers:{Authentication: `Berarer ${token}`}}
     let pageOwner = this.$route.params.username
-    try{
-      this.$Loading.start()
-      const response = await axios.get(`${Config.server.USERS_URL}/${pageOwner}/todos`, config)
-      this.user = response.data
-      this.status = response.status
-      this.$Loading.finish()
-    }catch(x){
-      this.errorOccurred = true
-      this.status = x.response.status
-      this.statusMessage = x.response.statusMessage
-      this.$Loading.error()
-    }
+    let response = await this.axiosGetRequest(`${Config.server.USERS_URL}/${pageOwner}/todos`)
+    this.user = response.data ? response.data : null
   }
 
   modifyDropdownValue(newValue){

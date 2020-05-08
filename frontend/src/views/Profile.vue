@@ -1,8 +1,7 @@
 <template lang="pug">
   div
-    h1 This is Usr settings page  
     div.settings
-      img(:src="user.image_link")
+      img.profile-pic(:src="user.image_link")
       div.mini-header
         Button(v-show="!edit" @click="edit = true" type="warning")
           Icon(type="md-create" )
@@ -19,7 +18,7 @@
       p.label Last Name
       Input(:disabled="!edit" v-model="user.lastName")
       p.label Admin priviledges
-      Input(:disabled="true" v-model="user.is_admin")
+      Input(:disabled="true" v-model="userIsAdmin")
       p.label Profile Picture
       Input(:disabled="!edit" v-model="user.image_link")
     a(@click="changePassword") change password
@@ -30,14 +29,18 @@
 <script>
 import {Vue, Component} from 'vue-property-decorator'
 import ChangePassword from '@/components/ChangePassword.vue'
+import axiosRequest from '@/mixins/axiosRequest'
+import Config from '@/config'
 import axios from 'axios'
 
 @Component({
-  components: {ChangePassword}
+  components: {ChangePassword},
+  mixins: [axiosRequest]
 })
 export default class Profile extends Vue {
   edit = false
   display = false
+  user = null
 
   user = {
     id: '',
@@ -50,11 +53,14 @@ export default class Profile extends Vue {
     image_link: ''
   }
 
-  beforeCreate(){
-    // axios.interceptors.response.use(
-    //   response=>{},
-    //   error=>{}
-    // )
+  get userIsAdmin(){
+    return this.user.is_admin? 'enabled' : 'disabled'
+  }
+
+  async created(){
+    let pageOwner = this.$route.params.username
+    let response = await this.axiosGetRequest(Config.server.BASE_SERVER_URL+'/user/'+pageOwner)
+    this.user = response.data ? response.data : null
   }
 
   changePassword(){
@@ -64,22 +70,6 @@ export default class Profile extends Vue {
   updatedPassword(x){
     this.display = false
   }
-
-  
-  // set user(prop){
-  //   let self = this
-  //   return function(value){
-  //     self.myUser = {...self.myUser, prop: value}
-  //   }
-  // }
-
-  // get user(prop){
-  //   let self = this
-  //   return function(){
-  //     return self.myUser[prop]
-  //   }
-  // }
-
 
 }
 </script>
@@ -102,4 +92,10 @@ export default class Profile extends Vue {
 .password-area
   z-index: -1
 
+.profile-pic
+  grid-column: 1 / span 2
+  width: 150px
+  height: 150px
+  margin: auto
+  border: 1px solid black
 </style>

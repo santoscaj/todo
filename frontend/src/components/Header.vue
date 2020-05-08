@@ -1,8 +1,10 @@
 <template lang="pug">
 Header
-    span {{activeUser.username}}
+    .spacer
+    .header-title {{title}}
     .menu(@click.stop="showOrNot(!show)")
-        Avatar(size="small" :src="activeUser.image_link"   v-if="login")
+        div {{activeUser.username}}
+        Avatar(size="small" :src="activeUser.image_link" v-if="login")
         Icon.menu-icon(type="ios-arrow-down" v-if="login")
         transition(name="my-transition")
             .sub-menu(v-if="show" @click.stop="showOrNot(!show)" ref="sub")
@@ -26,6 +28,10 @@ export default class MyHeader extends Vue{
         this.show = show
         if(show)
             addEventListener('click',e=>{this.$refs.sub.style.display = 'none'},{once:true})
+    }
+
+    get title(){
+        return this.$route.meta.pageTitle
     }
 
     get login(){
@@ -61,9 +67,11 @@ export default class MyHeader extends Vue{
     position: relative
     height: 100%
     display: flex
+    justify-items: flex-end
     align-items: center
     cursor: pointer
     padding: 5px
+    width: 200px
 
     .menu-icon:hover
         color: white
@@ -90,6 +98,9 @@ export default class MyHeader extends Vue{
             justify-content: space-between
             min-width: 80px            
 
+.spacer
+    width: 380px
+
 .username
     font-size: 18px
 
@@ -98,5 +109,9 @@ export default class MyHeader extends Vue{
 
 .my-transition-enter, .my-transition-leave-to
   opacity: 0.2
+
+.header-title
+    flex: 1 1 auto
+    font-family: 'Sarpanch', sans-serif
 
 </style>

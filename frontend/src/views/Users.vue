@@ -1,6 +1,5 @@
 <template lang="pug">
   div
-    h3 This is admin users page
     Table(:columns="columns" :data="tableData" border disabled- size="small")
       template(slot-scope="{ row, index }" slot="action")
         Tooltip(content="Reset user password" placement="top")
@@ -9,7 +8,6 @@
         Tooltip(content="Delete User" placement="top")
           Button.btn(type="error") 
             Icon(type="ios-trash-outline")
-
 </template>
 
 <script>
@@ -17,9 +15,14 @@ import {Component, Vue} from 'vue-property-decorator'
 import { vxm } from '@/store'
 import axios from 'axios'
 import Config from '@/config'
+import AxiosRequest from '@/mixins/axiosRequest'
 
-@Component
-export default class Login extends Vue{
+@Component({
+  mixins: [ AxiosRequest ]
+})
+export default class Users extends Vue{
+  status = null
+  statusMessage = null
   users = []
 
   get columns(){
@@ -43,19 +46,10 @@ export default class Login extends Vue{
   }
 
   async created(){
-    let token = vxm.user.usertoken
-    try{
-      let response = await axios.get(Config.server.USERS_URL)
-      let users = response.data
-      console.log(users)
-    }catch(e){
-      console.error(e)
-    }
-
+    let response = await this.axiosGetRequest(Config.server.USERS_URL)
+    this.users = response.data ? response.data : null
   }
 }
-
-
 
 </script>
 

@@ -39,7 +39,8 @@ const routes: RouteConfig[] = [
     component:Users, // () => import('../views/Users.vue'),
     meta:{
       requiresAuth: true,
-      is_admin: true
+      is_admin: true,
+      pageTitle: 'User Management'
     }
   },
   {
@@ -48,6 +49,7 @@ const routes: RouteConfig[] = [
     component: Todos,// () => import('../views/Todos.vue'),
     meta:{
       requiresAuth: true,
+      pageTitle: 'User to-do lists'
     }
   },
   {
@@ -56,6 +58,7 @@ const routes: RouteConfig[] = [
     component: Profile, // () => import('../views/Profile.vue'),
     meta:{
       requiresAuth: true,
+      pageTitle: 'User Settings'
     }
   },
   {

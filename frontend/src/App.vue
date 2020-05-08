@@ -4,17 +4,18 @@
       Header
       Layout
         Sider
-          router-link.side-link(:to="{name: 'Todos', params: {username: activeUser.username }}" v-if="login") 
-            Icon(type="md-clipboard") 
-            span Todos
-          router-link.side-link(:to="{name: 'Users'}" :disabled="!activeUser.is_admin" v-if="login") 
-            Icon(type="md-people") 
-            span Management
-          router-link.side-link(:to="{name: 'Profile', params: {username: activeUser.username }}" v-if="login") 
-            Icon(type="md-person") 
-            span Profile
+          transition-group(name="slide-right")
+            router-link.side-link(:to="{name: 'Todos', params: {username: activeUser.username }}" v-if="login" key="todos") 
+              Icon(type="md-clipboard") 
+              span Todos
+            router-link.side-link(:to="{name: 'Users'}" :disabled="!activeUser.is_admin" v-if="login" key="management") 
+              Icon(type="md-people") 
+              span Management
+            router-link.side-link(:to="{name: 'Profile', params: {username: activeUser.username }}" v-if="login" key="profile") 
+              Icon(type="md-person") 
+              span Profile
         Content
-          transition(name="slide-fade")
+          transition(name="slide-left")
             router-view
 </template>
 
@@ -27,9 +28,7 @@ import Config from './config'
 import {myRoutes} from './router'
 
 @Component({
-  components: {
-    Header,
-  },
+  components: { Header }
 })
 export default class App extends Vue {
   get activeUser(){
@@ -87,6 +86,7 @@ body
   background: #0d1821d1 !important 
   background: #0D1821 !important 
   background: #0d1821f5 !important 
+  overflow: hidden
 
 .ivu-layout-header
   background: #72b01d !important
@@ -100,8 +100,9 @@ body
   height: 40px !important
   align-items: center !important
   line-height: unset !important
+  user-select: none
   &>*
-    margin-left: 10px
+    margin-left: 8px
 
 .side-link
   display: block
@@ -112,6 +113,9 @@ body
   color: #eef0f2
   font-family: 'Sarpanch', sans-serif
   text-align: left
+  transition: all .8s ease
+  &:hover
+    margin-left: 12px
 
   &>.ivu-icon
     margin: 0 10px 0 15px
@@ -126,15 +130,26 @@ body
   padding:10px
   border-bottom: 1px solid black
 
+.ivu-layout-content
+  font-size: 11px
+  padding: 40px
 
-.slide-fade-enter-active 
-  transition: all .3s ease .3s
+.slide-left-enter-active 
+  transition: all .2s ease .3s 
 
-.slide-fade-leave-active 
-  transition: all .2s cubic-bezier(1.0, 0.3, 0.5, 1.0)
+.slide-left-leave-active 
+  transition: all .1s cubic-bezier(1.0, 0.3, 0.5, 1.0)
 
-.slide-fade-enter, .slide-fade-leave-to
-  transform: translateX(100%)
+.slide-left-enter, .slide-left-leave-to
+  display: none
+
+
+
+// .slide-right-enter-active 
+//   transition: all .2s ease
+
+// .slide-right-leave-active 
+//   transition: translateX(10px)
 
 
 </style>

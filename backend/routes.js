@@ -99,8 +99,6 @@ router.get('/users/:pageOwner/todos',async (req, res)=>{
   token = token.split(' ')[1]
   try{    
     let webtoken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-    if(!webtoken) return res.sendStatus(400)
-    console.log(webtoken)
     let id = webtoken.id
     let queryPageInfo = await User.findOne({where:{username:pageOwner}, include: Todo})
     let queryUserInfo = await User.findOne({where:{id}})
@@ -137,17 +135,42 @@ router.get('/activeuser', async (req, res)=>{
 router.get('/users', async (req, res)=>{
   try{
     let token = req.get('Authentication')
-    if(!token) return res.sendStatus(400)
-
+    token = token.split(' ')[1]
     let webtoken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-    if(!webtoken) return res.sendStatus(401)
+    let id = webtoken.id
+    let accessingUser = await User.findOne({where:{id}})
+    
+    if(!accessingUser) return res.sendStatus(401)
+    if(!accessingUser.is_admin) return res.sendStatus(403)
+
     let allUsers = await User.findAll({include:Todo})
     res.json(allUsers)
   }catch(e){
+    if(e.message == 'invalid token') return res.status(400).send(e.message)
     console.error(e)
   }
 })
 
+router.get('/user/:pageOwner', async(req, res)=>{
+  let pageOwner = req.params.pageOwner
+  let token = req.get('Authentication')
+  if(!token || !pageOwner) res.sendStatus(400)
+
+  try{
+    token = token.split(' ')[1]
+    let webtoken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+    let id = webtoken.id
+    let queryUser = await User.findOne({where:{id}})
+    if (!queryUser) return res.sendStatus(401)
+    if(queryUser.dataValues.username !== pageOwner) return res.sendStatus(403)
+    res.json(queryUser.dataValues)
+
+  }catch(e){
+    if(e.message == 'invalid token') return res.status(400).send(e.message)
+    res.sendStatus(500)
+    console.error(e)
+  }
+})
 
 
 module.exports = router

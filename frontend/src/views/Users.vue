@@ -15,9 +15,12 @@
 <script>
 import {Component, Vue} from 'vue-property-decorator'
 import { vxm } from '@/store'
+import axios from 'axios'
+import Config from '@/config'
 
 @Component
 export default class Login extends Vue{
+  users = []
 
   get columns(){
     return [
@@ -29,7 +32,7 @@ export default class Login extends Vue{
   }
 
   get tableData(){
-    return vxm.user.users.map(obj=>{
+    return this.users.map(obj=>{
       return {
         id: obj.id,
         username: obj.username, 
@@ -37,10 +40,18 @@ export default class Login extends Vue{
         admin: obj.is_admin === true? 'enabled': 'disabled'
       }
     })
-    // return [{one: 'this is one ', rwo:'2'},{one: 'palomon', rwo:'ok'}]
   }
 
-  created(){
+  async created(){
+    let token = vxm.user.usertoken
+    try{
+      let response = await axios.get(Config.server.USERS_URL)
+      let users = response.data
+      console.log(users)
+    }catch(e){
+      console.error(e)
+    }
+
   }
 }
 

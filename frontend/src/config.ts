@@ -7,6 +7,7 @@ interface Server{
     USERS_URL: string;
     TODOS_URL: string;
     TOKENS_URL: string;
+    GET_ACTIVE_USER: string;
 }
 
 interface Client{
@@ -29,8 +30,9 @@ let BASE_CLIENT_URL:string="http://localhost:8080"
 const server :Server ={
     BASE_SERVER_URL : BASE_SERVER_URL,
     LOGIN_URL:BASE_SERVER_URL+"/login",
-    REGISTER_URL:BASE_SERVER_URL+"/register",
+    GET_ACTIVE_USER: BASE_SERVER_URL+"/activeuser",
     USERS_URL: BASE_SERVER_URL+"/users",
+    REGISTER_URL:BASE_SERVER_URL+"/register",
     TODOS_URL: BASE_SERVER_URL+"/todos",
     TOKENS_URL: BASE_SERVER_URL+"/usertoken",
 }
@@ -47,13 +49,9 @@ const client: Client ={
 
 axios.interceptors.response.use(
     function(response){
-        console.log('response from interceptor', response)
       return response
     },
     function(error){
-    //   if(error.response.status == 401)
-    //     window.location.pathname = '/logout'
-    
         return Promise.reject(error)
     }
 )

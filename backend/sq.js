@@ -23,9 +23,8 @@ async function addDefaultUsers(){
         await Todo.findOrCreate({where:{...todo, user_id: usr[0].dataValues.id}})
       }
     }catch(err){
-      console.error(err)
+      console.error(err.message)
     }
-
   }
 }
 

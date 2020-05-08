@@ -7,7 +7,8 @@ import Register from '../views/Register.vue';
 import Users from '../views/Users.vue';
 import Profile from '../views/Profile.vue';
 import PageNotFound from '../views/PageNotFound.vue';
-
+import Logout from '../views/Logout.vue';
+import {vxm } from '@/store'
 Vue.use(VueRouter);
 
 const routes: RouteConfig[] = [
@@ -33,7 +34,7 @@ const routes: RouteConfig[] = [
     }
   },
   {
-    path: '/management/users/',
+    path: '/management/users',
     name: 'Users',
     component:Users, // () => import('../views/Users.vue'),
     meta:{
@@ -58,6 +59,15 @@ const routes: RouteConfig[] = [
     }
   },
   {
+    path: '/logout',
+    name: 'Logout',
+    beforeEnter: (to, from, next)=>{
+      localStorage.clear()
+      vxm.user.logout()
+      next('/login')
+    }
+  },
+  {
     path: '*',
     name: 'PageNotFound',
     component: PageNotFound, // () => import('../views/PageNotFound.vue'),
@@ -69,9 +79,6 @@ const router = new VueRouter({
   base: process.env.BASE_URL,
   routes,
 });
-
-let logged_in = true
-let admin_user = false
 
 router.beforeEach((to, from, next)=>{
   if(to.matched.some(page=> page.meta.requiresAuth)){
@@ -86,7 +93,6 @@ router.beforeEach((to, from, next)=>{
     next()
   }
 
-  // console.log('printing to: ',to)
   return 
   
 })

@@ -11,7 +11,7 @@ const users = [
         is_admin: false,
         firstName: "",
         lastName: "",
-        image_link: "https://i1.sndcdn.com/avatars-000105344650-iuxeec-t500x500.jpg",
+        image_link: "https://img.buzzfeed.com/buzzfeed-static/static/2018-02/6/16/asset/buzzfeed-prod-fastlane-03/sub-buzz-18967-1517953069-1.png?downsize=700%3A%2A&output-quality=auto&output-format=auto&output-quality=auto&output-format=auto&downsize=360:*",
     },todoList:
         [{
             title: "house", 

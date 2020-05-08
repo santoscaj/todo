@@ -1,8 +1,23 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import { createModule, mutation, extractVuexModule, createProxy } from "vuex-class-component";
+import { TreeChild } from 'view-design';
 
 Vue.use(Vuex);
+
+function emptyUser(){
+  return {
+    id: "",
+    username: "",
+    password: "",
+    email: "",
+    is_admin: false,
+    todos: [],
+    firstName: "",
+    lastName: "",
+    image_link: "",
+  }
+}
 
 const VuexModule = createModule({
   namespaced: "user",
@@ -29,25 +44,12 @@ export interface User{
 }
 
 export class MyStore extends VuexModule{
-  users = []
-  activeUser : User | null = null
-  activeUserTodos : Todo | null = null
+  activeUser : User = emptyUser()
+  usertoken :string | null = null
 
-  get userTodos(){
-    return this.activeUserTodos
-  }
-
-  get getUserTodos(){
-    const self = this
-    return function(username: string){
-      return self.users
-      .filter((u:User)=>u.username === username)
-      .map((u:User)=>u.todos)[0]    
-    }
-  }  
-
-  @mutation setUsers(data : any){
-    this.users = data
+  @mutation logout(){
+    this.activeUser = emptyUser()
+    this.usertoken = null
   }
 
   @mutation setActiveUser(user:User){

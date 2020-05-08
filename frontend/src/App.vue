@@ -130,9 +130,10 @@ body
   padding:10px
   border-bottom: 1px solid black
 
-.ivu-layout-content
-  font-size: 11px
+.ivu-layout-content, .ivu-input
+  font-size: 11px !important
   padding: 40px
+  height: auto !important
 
 .slide-left-enter-active 
   transition: all .2s ease .3s 

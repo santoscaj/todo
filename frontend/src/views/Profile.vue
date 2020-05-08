@@ -1,28 +1,34 @@
 <template lang="pug">
   div
-    div.settings
-      img.profile-pic(:src="user.image_link")
-      div.mini-header
-        Button(v-show="!edit" @click="edit = true" type="warning")
-          Icon(type="md-create" )
-        Button(v-show="edit" @click="edit = false" type="error")
-          Icon(type="md-close")
-        Button(v-show="edit" @click="edit = false" type="success")
-          Icon(type="md-checkmark")
-      p.label username
-      Input(:disabled="!edit" v-model="user.username")
-      p.label email
-      Input(:disabled="!edit" v-model="user.email")
-      p.label First Name
-      Input(:disabled="!edit"  v-model="user.firstName")
-      p.label Last Name
-      Input(:disabled="!edit" v-model="user.lastName")
-      p.label Admin priviledges
-      Input(:disabled="true" v-model="userIsAdmin")
-      p.label Profile Picture
-      Input(:disabled="!edit" v-model="user.image_link")
-    a(@click="changePassword") change password
-    ChangePassword.password-area(:showPassword="display" @update:showPassword="updatedPassword($event)")
+    .parent-settings
+      .settings
+        img.profile-pic(:src="user.image_link")
+        .mini-header
+          Tooltip( content="Edit your info" placement="top" theme="light")
+            Button(size="small" v-show="!edit" @click="editUser()" type="warning")
+              Icon(type="md-create" )
+          Tooltip( content="Discard Changes" placement="top" theme="light")
+            Button(size="small" v-show="edit" @click="discardChanges()" type="error")
+              Icon(type="md-close")
+          Tooltip( content="Save changes" placement="top" theme="light")
+            Button(size="small" v-show="edit" @click="saveUser()" type="success")
+              Icon(type="md-checkmark")
+        p.label username
+        Input(:disabled="!edit" v-model="user.username")
+        p.label email
+        Input(:disabled="!edit" v-model="user.email")
+        p.label First Name
+        Input(:disabled="!edit"  v-model="user.firstName")
+        p.label Last Name
+        Input(:disabled="!edit" v-model="user.lastName")
+        p.label Admin priviledges
+        Input(:disabled="true" v-model="userIsAdmin")
+        p.label Profile Picture
+        Input(:disabled="!edit" v-model="user.image_link")
+      .password-area
+        a.change-password-link(@click="changePassword") change password
+        ChangePassword(:showPassword="display" @update:showPassword="updatedPassword($event)")
+      Button(type="error" icon="md-trash" size="large" @click="deleteCurrentAccount()") Delete Account
       
 </template>
 
@@ -53,6 +59,15 @@ export default class Profile extends Vue {
     image_link: ''
   }
 
+  deleteCurrentAccount(){}
+  saveUser(){
+    this.edit=false
+  }
+  discardChanges(){}
+  editUser(){
+    this.edit = !this.edit
+  }
+
   get userIsAdmin(){
     return this.user.is_admin? 'enabled' : 'disabled'
   }
@@ -75,11 +90,14 @@ export default class Profile extends Vue {
 </script>
 
 <style lang="sass">
-.settings
-  width: 800px
+.parent-settings
+  max-width: 800px
+  border: 1px solid lightgray
+  border-radius: 10px
   margin: auto
-  left: 50%
-
+  padding: 20px
+  
+.settings
   display: grid
   grid-template-columns: 50% 50%
   grid-row-gap: 5px
@@ -89,13 +107,20 @@ export default class Profile extends Vue {
   display: flex
   justify-content: flex-end
 
-.password-area
-  z-index: -1
-
 .profile-pic
   grid-column: 1 / span 2
   width: 150px
   height: 150px
   margin: auto
   border: 1px solid black
+
+.password-area
+  padding: 15px 0
+
+.mini-header>*
+  padding: 2px
+
+
+.change-password-link
+  grid-column: 1 / span 2
 </style>

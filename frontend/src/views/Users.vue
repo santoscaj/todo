@@ -1,12 +1,15 @@
 <template lang="pug">
   div
     Table(:columns="columns" :data="tableData" border disabled- size="small")
+      template(slot-scope="{ row, index }" slot="xoxo") 
+        div {{row.admin}}
+          Switch(v-model="x" @on-change="change")
       template(slot-scope="{ row, index }" slot="action")
         Tooltip(content="Reset user password" placement="top")
-          Button.btn()
+          Button.btn( @click="resetPassword(row)" )
             Icon(type="md-refresh")
         Tooltip(content="Delete User" placement="top")
-          Button.btn(type="error") 
+          Button.btn(type="error" @click="deleteUser(row)" )
             Icon(type="ios-trash-outline")
 </template>
 
@@ -24,14 +27,27 @@ export default class Users extends Vue{
   status = null
   statusMessage = null
   users = []
+  x = true
+
+  deleteUser(row){
+    console.log('we have to delete ', row.username)
+  }
+
+  resetPassword(row){
+    console.log('we have to reset Password of  ', row.username)
+  }
 
   get columns(){
     return [
       {title:'id', key:'id', width: 60}, 
       {title:'username', key:'username'}, 
       {title:'email', key:'email'}, 
-      {title:'admin priviledges', key:'admin'}, 
+      {title:'admin priviledges', slot:"xoxo", key:'admin'}, 
       {title:'action', slot:'action', width: 180, align:'center'}]
+  }
+
+  change(){
+
   }
 
   get tableData(){

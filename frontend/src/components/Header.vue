@@ -3,7 +3,7 @@ Header
     .spacer
     .header-title {{title}}
     .menu(@click.stop="showOrNot(!show)")
-        div {{activeUser.username}}
+        .username {{activeUser.username}}
         Avatar(size="small" :src="activeUser.image_link" v-if="login")
         Icon.menu-icon(type="ios-arrow-down" v-if="login")
         transition(name="my-transition")
@@ -67,11 +67,15 @@ export default class MyHeader extends Vue{
     position: relative
     height: 100%
     display: flex
-    justify-items: flex-end
+    justify-content: flex-end
     align-items: center
     cursor: pointer
     padding: 5px
     width: 200px
+
+    .username
+        padding-right: 8px 
+        font-size: 12px
 
     .menu-icon:hover
         color: white

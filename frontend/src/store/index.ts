@@ -52,6 +52,10 @@ export class MyStore extends VuexModule{
     this.usertoken = null
   }
 
+  @mutation setToken(token: string){
+    this.usertoken = token
+  }
+  
   @mutation setActiveUser(user:User){
     this.activeUser = user
   }

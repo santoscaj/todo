@@ -4,13 +4,13 @@
       Header
       Layout
         Sider
-          router-link.side-link(:to="{name: 'Todos', params: {username: activeUser.username }}") 
+          router-link.side-link(:to="{name: 'Todos', params: {username: activeUser.username }}" v-if="login") 
             Icon(type="md-clipboard") 
             span Todos
-          router-link.side-link(:to="{name: 'Users'}" :disabled="!activeUser.is_admin") 
+          router-link.side-link(:to="{name: 'Users'}" :disabled="!activeUser.is_admin" v-if="login") 
             Icon(type="md-people") 
             span Management
-          router-link.side-link(:to="{name: 'Profile', params: {username: activeUser.username }}") 
+          router-link.side-link(:to="{name: 'Profile', params: {username: activeUser.username }}" v-if="login") 
             Icon(type="md-person") 
             span Profile
         Content
@@ -47,7 +47,7 @@ export default class App extends Vue {
   async beforeCreate(){
     let token = localStorage.getItem('token')
     if(token){
-      vxm.user.usertoken = token
+      vxm.user.setToken(token)
       try{
         let config = {headers: {Authentication: `Bearer ${token}` } }
         let response = await axios.get(Config.server.GET_ACTIVE_USER, config)

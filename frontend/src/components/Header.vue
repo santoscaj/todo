@@ -2,8 +2,8 @@
 Header
     span {{activeUser.username}}
     .menu(@click.stop="showOrNot(!show)")
-        Avatar(size="small" :src="activeUser.image_link")
-        Icon.menu-icon(type="ios-arrow-down")
+        Avatar(size="small" :src="activeUser.image_link"   v-if="login")
+        Icon.menu-icon(type="ios-arrow-down" v-if="login")
         transition(name="my-transition")
             .sub-menu(v-if="show" @click.stop="showOrNot(!show)" ref="sub")
                 //- .sub-menu-item(name="user_config" :to="`/users/activeUser.username}`") Config

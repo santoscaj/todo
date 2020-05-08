@@ -1,5 +1,5 @@
 <template lang="pug">
-  div
+  div(v-if="!errorOccurred")
     Table(:columns="columns" :data="tableData" border disabled- size="small")
       template(slot-scope="{ row, index }" slot="xoxo") 
         div {{row.admin}}
@@ -11,6 +11,8 @@
         Tooltip(content="Delete User" placement="top")
           Button.btn(type="error" @click="deleteUser(row)" )
             Icon(type="ios-trash-outline")
+  ErrorPage(v-else :status="status" :statusMessage="statusMessage")
+
 </template>
 
 <script>
@@ -19,8 +21,10 @@ import { vxm } from '@/store'
 import axios from 'axios'
 import Config from '@/config'
 import AxiosRequest from '@/mixins/axiosRequest'
+import ErrorPage from '@/components/ErrorPage.vue'
 
 @Component({
+  components: {ErrorPage},
   mixins: [ AxiosRequest ]
 })
 export default class Users extends Vue{
@@ -51,19 +55,19 @@ export default class Users extends Vue{
   }
 
   get tableData(){
-    return this.users.map(obj=>{
+    return this.users? this.users.map(obj=>{
       return {
         id: obj.id,
         username: obj.username, 
         email: obj.email, 
         admin: obj.is_admin === true? 'enabled': 'disabled'
       }
-    })
+    }) : []
   }
 
   async created(){
     let response = await this.axiosGetRequest(Config.server.USERS_URL)
-    this.users = response.data ? response.data : null
+    this.users = ( response  && response.data) ? response.data : null
   }
 }
 

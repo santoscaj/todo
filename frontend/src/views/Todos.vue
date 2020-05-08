@@ -55,7 +55,7 @@ export default class Todos extends Vue {
   async getUser(){
     let pageOwner = this.$route.params.username
     let response = await this.axiosGetRequest(`${Config.server.USERS_URL}/${pageOwner}/todos`)
-    this.user = response.data ? response.data : null
+    this.user = ( response  && response.data) ? response.data : null
   }
 
   modifyDropdownValue(newValue){

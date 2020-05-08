@@ -2,6 +2,7 @@ require('dotenv').config()
 const bcrypt = require('bcrypt')
 const Sequelize = require('sequelize')
 const { users} = require('./utils/Default')
+const isEmail = require('validator/lib/isEmail')
 
 
 const myLoggingFunction = function(message){
@@ -28,6 +29,13 @@ async function addDefaultUsers(){
   }
 }
 
+// class MyError extends Error {
+//   constructor(message) {
+//     super(message); // (1)
+//     // this.name = "ValidationError"; // (2)
+//   }
+// }
+
 sequelize
   .authenticate()
   .then(() => {
@@ -48,7 +56,10 @@ const User = sequelize.define('user', {
   email: {
     type: Sequelize.STRING,
     allowNull: false,
-    unique: true
+    unique: true,
+    validate:{
+      isEmail : true
+    }
   },
   password: {
     type: Sequelize.STRING,
@@ -69,6 +80,23 @@ const User = sequelize.define('user', {
   },
 }, {
   // options
+  hooks:{
+    beforeDestroy: async function(instance, options){
+      return Error('beforeDestroy this is my error');
+      let adminUsers = await this.findAll({where:{is_admin:true}})
+      if(!adminUsers.dataValues) throw new Error('There are no admin users')
+      if(adminUsers.dataValues.length==1)  throw new Error('cannot delete last admin user')
+    },
+    beforeBulkDestroy: async function(instance, options){
+      let where = instance.where
+      let queryUsersTobeDestroyed = await this.findAll({where})
+      let queryAdminUsers = await this.findAll({where: {is_admin: true}})
+      let adminUsersToBeDestroyed = queryUsersTobeDestroyed.map(u => u.dataValues).filter(u => u.is_admin)
+      let totalAdminUsers = queryAdminUsers.map(u => u.dataValues).filter(u => u.is_admin)
+      if(totalAdminUsers.length == adminUsersToBeDestroyed.length)
+        throw new Error('cannot bulk delete all admin users')
+    }
+  }
 });
 
 const Todo = sequelize.define('todos', {
@@ -96,6 +124,42 @@ Todo.hasOne(User, {foreignKey: 'id', constraints: false})
 
 sequelize.sync()
 
+module.exports = { User, Todo, Sequelize }
+
 addDefaultUsers()
 
-module.exports = { User, Todo, Sequelize }
+// testing functions - can be removed
+// ;((async function(){
+//   try{ 
+//     let newUser =  await User.create({
+//       id: "99",
+//       username: "testo",
+//       password: "1234",
+//       email: "12313213",
+//       is_admin: false,
+//       firstName: "",
+//       lastName: "",
+//       image_link: ""
+//       })
+//     console.log('created user with no error')
+//     console.log(newUser)
+//   }catch(e){
+//     if(e.message = 'Validation error: Validation isEmail on email failed')
+//       console.log('you got what you wnated')
+//     else 
+//       console.log(e.message)
+//   }
+// })())
+
+// ;((async function(){
+//   try{ 
+//     let destroyedUser = User.destroy({where:{username:'admin'}})
+//   }catch(e){
+//     // if(e.message == 'cannot bulk delete all admin users')
+//     //   console.log('You got what you wnated')
+//     // else 
+//       console.dir(e)
+//   }
+// })())
+
+

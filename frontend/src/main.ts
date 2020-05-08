@@ -37,7 +37,8 @@ Vue.use(ViewUI);
 //   ViewUI.LoadingBar.finish();
 // });
 
-new Vue({
+export const myVue = new Vue({
   router,
   render: (h) => h(App),
 }).$mount('#app');
+

@@ -8,6 +8,7 @@ import Users from '../views/Users.vue';
 import Profile from '../views/Profile.vue';
 import PageNotFound from '../views/PageNotFound.vue';
 import Logout from '../views/Logout.vue';
+// import myVue from '@/main'
 import {vxm } from '@/store'
 Vue.use(VueRouter);
 
@@ -68,6 +69,7 @@ const routes: RouteConfig[] = [
       localStorage.clear()
       vxm.user.logout()
       next('/login')
+      // myVue.$Message.success('logout successful')
     }
   },
   {

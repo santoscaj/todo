@@ -58,7 +58,9 @@ router.post('/register',async (req, res)=>{
       res.status(200).send({auth: true, accessToken, user})
   }catch(err){
       let error = err.errors[0]
-      if(error.type==='notNull Violation')
+      if(e.message = 'Validation error: Validation isEmail on email failed')
+        return res.status(400).send('Email field not in expected format')
+      else if(error.type==='notNull Violation')
         return res.status(400).send(error.message)
       else if(error.type==='unique violation')
         return res.status(409).send(error.message)

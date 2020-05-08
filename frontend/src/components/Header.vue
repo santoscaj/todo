@@ -27,7 +27,7 @@ export default class MyHeader extends Vue{
     showOrNot(show = false){
         this.show = show
         if(show)
-            addEventListener('click',e=>{this.$refs.sub.style.display = 'none'},{once:true})
+            addEventListener('click',e=>{this.show=false},{once:true})
     }
 
     get title(){

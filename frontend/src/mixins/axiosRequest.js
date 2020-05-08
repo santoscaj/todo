@@ -8,7 +8,7 @@ import axios from 'axios'
 export default class AxiosRequest extends Vue{
     status = ''
     statusMessage = ''
-    errorOccurred= false
+    errorOccurred = false
     
     async axiosGetRequest(getUrl){
         let response = null
@@ -19,7 +19,7 @@ export default class AxiosRequest extends Vue{
             this.status = response.status
             this.statusMessage = response.statusMessage
         }catch(err){
-            this.errorOcurred = true
+            this.errorOccurred = true
             this.status = err.response.status
             this.statusMessage  = err.response.statusMessage
         }

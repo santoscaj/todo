@@ -1,5 +1,5 @@
 <template lang="pug">
-  div
+  div(v-if="!errorOccurred")
     .parent-settings
       .settings
         img.profile-pic(:src="user.image_link")
@@ -29,6 +29,7 @@
         a.change-password-link(@click="changePassword") change password
         ChangePassword(:showPassword="display" @update:showPassword="updatedPassword($event)")
       Button(type="error" icon="md-trash" size="large" @click="deleteCurrentAccount()") Delete Account
+  ErrorPage(v-else :status="status" :statusMessage="statusMessage")
       
 </template>
 
@@ -38,9 +39,10 @@ import ChangePassword from '@/components/ChangePassword.vue'
 import axiosRequest from '@/mixins/axiosRequest'
 import Config from '@/config'
 import axios from 'axios'
+import ErrorPage from '@/components/ErrorPage.vue'
 
 @Component({
-  components: {ChangePassword},
+  components: {ChangePassword, ErrorPage},
   mixins: [axiosRequest]
 })
 export default class Profile extends Vue {
@@ -75,7 +77,7 @@ export default class Profile extends Vue {
   async created(){
     let pageOwner = this.$route.params.username
     let response = await this.axiosGetRequest(Config.server.BASE_SERVER_URL+'/user/'+pageOwner)
-    this.user = response.data ? response.data : null
+    this.user = ( response  && response.data) ? response.data : null
   }
 
   changePassword(){

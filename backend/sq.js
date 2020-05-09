@@ -124,7 +124,7 @@ Todo.hasOne(User, {foreignKey: 'id', constraints: false})
 
 sequelize.sync()
 
-module.exports = { User, Todo, Sequelize }
+module.exports = { User, Todo, Sequelize, sequelize }
 
 addDefaultUsers()
 

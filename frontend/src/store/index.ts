@@ -47,6 +47,10 @@ export class MyStore extends VuexModule{
   activeUser : User = emptyUser()
   usertoken :string | null = null
 
+  get userIsLoggedIn(){
+    return Boolean(this.usertoken)
+  }
+
   @mutation logout(){
     this.activeUser = emptyUser()
     this.usertoken = null

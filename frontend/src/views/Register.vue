@@ -1,6 +1,5 @@
 <template lang="pug">
   div
-    h3 This is register page
     div.main
       Card.card
         Form(ref="myForm" :model="myForm" :rules="myRules")
@@ -18,11 +17,22 @@
 </template>
 
 <script>
-import {validatePass, validatePassCheck} from '@/utils/validation'
+import {validatePass, validatePassCheck, validateUnique} from '@/utils/validation'
 import  { Component, Vue } from 'vue-property-decorator'
+import  { vxm } from '@/store'
+import  axios from 'axios'
+import  AxiosRequest from '@/mixins/axiosRequest'
+import  Config from '@/config'
 
-@Component
+@Component({
+  mixins: [AxiosRequest]
+})
 export default class Register extends Vue{
+  // uniqueFields = {
+  //   username : [],
+  //   email : []
+  // }
+
   myForm = {
     username: '',
     email: '',
@@ -32,22 +42,47 @@ export default class Register extends Vue{
 
   myRules = {
     username: [
-      {required:true, message:"username cannot be empty", trigger: 'blur'}
+      {required:true, message:"username cannot be empty", trigger: 'blur'},
     ],
     email: [
       {required:true, message:"Email cannot be empty", trigger: 'blur'},
-      {type:'email', message:"Incorrect email format", trigger: 'blur'}
+      {type:'email', message:"Incorrect email format", trigger: 'blur'},
     ],
     password: [
       { required:true, validator: validatePass(this), trigger: 'blur' }
     ],
     passwordCheck: [
-      { required:true,validator: validatePassCheck(this), trigger: 'blur' }
+      {validator: validatePassCheck(this), trigger: 'blur' }
     ],
   }
 
-  handleSubmit(){
+  async created(){
+    let response = await this.axiosGetRequest(Config.server.UNIQUE_FIELDS)
+    let uniqueFields = response.data
+    
+    this.myRules.username.push({validator: validateUnique(uniqueFields.username), trigger: 'blur' })
+    this.myRules.email.push({validator: validateUnique(uniqueFields.email), trigger: 'blur' })
+  }
 
+  async handleSubmit(){
+    try{
+      let data = {
+        username:this.myForm.username,
+        email:this.myForm.email,
+        password:this.myForm.password
+      }
+      let response = await axios.post(Config.server.REGISTER_URL, data)
+      let token = response.data.accessToken
+      let user = response.data.user
+      vxm.user.setActiveUser(user)
+      vxm.user.setToken(token)
+      localStorage.setItem('token',token)
+      localStorage.setItem('username', user.username)
+      this.$router.replace({name:'Profile', params:{username:user.username}})
+    }catch(e){
+      console.error(e)
+      this.$Message.error('There was an error adding user')
+    }
   }
 
   handleReset(name){

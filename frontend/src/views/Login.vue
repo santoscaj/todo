@@ -12,7 +12,7 @@
         div.register
           a forgot password
           p No account? 
-            a Sign Up here
+            router-link(:to="{name:'Register'}") Sign Up here
 </template>
 
 <script>
@@ -38,6 +38,7 @@ export default class Login extends Vue{
       vxm.user.setToken(token)
       
       localStorage.setItem('token', token)
+      localStorage.setItem('username', activeUser.username)
       this.$router.replace( `${config.client.USERS_URL}/${username}/todos`)
     }catch(e){
       console.error(e)

@@ -19,6 +19,7 @@ export default class AxiosRequest extends Vue{
             this.status = response.status
             this.statusMessage = response.statusMessage
         }catch(err){
+            console.error(err)
             this.errorOccurred = true
             this.status = err.response.status
             this.statusMessage  = err.response.statusMessage

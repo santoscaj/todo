@@ -8,6 +8,7 @@ interface Server{
     TODOS_URL: string;
     TOKENS_URL: string;
     GET_ACTIVE_USER: string;
+    UNIQUE_FIELDS: string;
 }
 
 interface Client{
@@ -32,6 +33,7 @@ const server :Server ={
     LOGIN_URL:BASE_SERVER_URL+"/login",
     GET_ACTIVE_USER: BASE_SERVER_URL+"/activeuser",
     USERS_URL: BASE_SERVER_URL+"/users",
+    UNIQUE_FIELDS: BASE_SERVER_URL+"/users/unique",
     REGISTER_URL:BASE_SERVER_URL+"/register",
     TODOS_URL: BASE_SERVER_URL+"/todos",
     TOKENS_URL: BASE_SERVER_URL+"/usertoken",

@@ -1,8 +1,9 @@
 <template lang="pug">
   div(v-if="!errorOccurred")
+    Welcome(v-if="firstTime")
     .parent-settings
       .settings
-        img.profile-pic(:src="user.image_link")
+        img.profile-pic(:src="user.image_link" v-if="imageAvailable")
         .mini-header
           Tooltip( content="Edit your info" placement="top" theme="light")
             Button(size="small" v-show="!edit" @click="editUser()" type="warning")
@@ -36,13 +37,16 @@
 <script>
 import {Vue, Component} from 'vue-property-decorator'
 import ChangePassword from '@/components/ChangePassword.vue'
+import Welcome from '@/components/Welcome.vue'
 import axiosRequest from '@/mixins/axiosRequest'
 import Config from '@/config'
 import axios from 'axios'
 import ErrorPage from '@/components/ErrorPage.vue'
+import  { vxm } from '@/store'
+
 
 @Component({
-  components: {ChangePassword, ErrorPage},
+  components: {ChangePassword, Welcome, ErrorPage},
   mixins: [axiosRequest]
 })
 export default class Profile extends Vue {
@@ -61,7 +65,29 @@ export default class Profile extends Vue {
     image_link: ''
   }
 
-  deleteCurrentAccount(){}
+  get firstTime(){
+    return this.$route.meta.firstTime
+  }
+
+  get imageAvailable(){
+    return Boolean(this.user.image_link)
+  }
+
+
+  async deleteCurrentAccount(){
+    let token = vxm.user.usertoken
+    let config = {headers:{Authentication: `Bearer ${token}`}}
+    let username = this.$route.params.username
+    try{
+        let response = await axios.delete(`${Config.server.USERS_URL}/${username}`, config)
+        this.$Message.success({  content: `user deleted successfully`, duration: 2 })
+        this.$router.push({name:'Logout'})
+    }catch(err){
+        let errorMessage =  ( err.response && err.response.data ) ? err.response.data : err.message
+        this.$Message.error({  content: `${errorMessage}`, duration: 3 })
+    }
+  }
+  
   saveUser(){
     this.edit=false
   }

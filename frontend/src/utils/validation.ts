@@ -18,3 +18,10 @@ export const validatePassCheck = (self:any)=>(rule:any, value:any, callback:any)
         callback()
 }
 
+export const validateUnique= (validationArr: string[])=>(rule:any, value:any, callback:any) =>{
+    if(validationArr.includes(value))
+        callback(new Error(`${value} is already taken`))
+    else
+        callback()
+}
+

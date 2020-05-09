@@ -3,7 +3,7 @@ require('dotenv').config()
 const express = require('express')
 const bodyParser = require('body-parser')
 const router = express.Router()
-const {User, Todo, Sequelize} = require('./sq')
+const {User, Todo, Sequelize, sequelize} = require('./sq')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const cleanObject = require('./utils/cleanData')
@@ -18,12 +18,12 @@ router.use(bodyParser.json());
 
 
 
-router.delete('/usertoken', (req, res)=>{
-  let token = req.body.token
-  if(activeUsersTokens.removeToken(token))
-    return res.sendStatus(200)
-  return res.sendStatus(404)
-})
+// router.delete('/usertoken', (req, res)=>{
+//   let token = req.body.token
+//   if(activeUsersTokens.removeToken(token))
+//     return res.sendStatus(200)
+//   return res.sendStatus(404)
+// })
 
 router.post('/register-admin',async (req, res)=>{
   let newUser = req.body
@@ -54,17 +54,18 @@ router.post('/register',async (req, res)=>{
       newUser.password = hashedPassword
       let queryResult = await User.create(newUser)
       let user = queryResult ? queryResult.dataValues : null
-      let accessToken = jwt.sign({id: user.id}, process.env.ACCESS_TOKEN_SECRET)
+      let accessToken = jwt.sign({id: user.id, username:user.username}, process.env.ACCESS_TOKEN_SECRET)
       res.status(200).send({auth: true, accessToken, user})
   }catch(err){
       let error = err.errors[0]
-      if(e.message = 'Validation error: Validation isEmail on email failed')
+      if(err.message = 'Validation error: Validation isEmail on email failed')
         return res.status(400).send('Email field not in expected format')
       else if(error.type==='notNull Violation')
         return res.status(400).send(error.message)
       else if(error.type==='unique violation')
         return res.status(409).send(error.message)
       return res.sendStatus(500)
+      console.error(err)
   }
 })
 
@@ -80,7 +81,7 @@ router.post('/login', async (req, res)=>{
       return res.sendStatus(401)
 
     let user = cleanObject(dbUser, DESIRED_USER_FIELDS)
-    let accessToken = jwt.sign({id: dbUser.id}, process.env.ACCESS_TOKEN_SECRET)
+    let accessToken = jwt.sign({id: dbUser.id, username:dbUser.username}, process.env.ACCESS_TOKEN_SECRET)
     res.status(200).send({auth:true, accessToken, user})
 
   }catch(e){  
@@ -174,5 +175,72 @@ router.get('/user/:pageOwner', async(req, res)=>{
   }
 })
 
+// console.log('-===================================================')
+// ;((async function(){
+//   try{ 
+//     let oneField = await User.findAll({attributes: ['username', 'email']})
+//     console.log(oneField)
+//   }catch(e){
+//     // if(e.message == 'cannot bulk delete all admin users')
+//     //   console.log('You got what you wnated')
+//     // else 
+//       console.dir(e)
+//   }
+// })())
+
+
+router.get('/users/unique', async (req,res)=>{
+  let allFields = sequelize.models.user.rawAttributes
+  let uniqueFields = []
+  let uniqueFieldsObj = {}
+  for(let i of Object.keys(allFields)){
+    if(allFields[i].unique) {
+      uniqueFields.push(i)
+      uniqueFieldsObj[i] = []
+    }
+  }
+  if(uniqueFields.length==0) return res.status(200).send('no unique values')
+  try{
+    let queryResult = await User.findAll({attributes: uniqueFields})
+    if(!queryResult) return res.status(200).send('no unique values')
+    queryResult.map(data=> data.dataValues).forEach(user=>{
+      uniqueFields.forEach(field=>{
+        uniqueFieldsObj[field].push(user[field])
+      })
+    })
+
+    res.json(uniqueFieldsObj)
+  }catch(e){
+    console.error(e)
+    res.sendStatus(500)
+  }
+})
+
+router.delete('/users/:username', async (req, res)=>{
+  let userToBeDeleted = req.params.username
+  let token = req.get('Authentication')
+  if(!token || !userToBeDeleted) return res.sendStatus(400)
+  token = token.split(' ')[1]
+
+  try{
+    let webtoken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+    let userDeleting = webtoken.username
+    let queryResult = await User.findOne({where:{username:userDeleting}})
+    
+    if(!queryResult) return res.sendStatus(401)
+    let userDeletingFull = queryResult.dataValues
+
+    if(userToBeDeleted!== userDeleting && !userDeletingFull.is_admin) return res.sendStatus(403)
+
+    let userDeletedResults = await User.destroy({where:{username:userToBeDeleted}})
+    res.json(userDeletedResults.dataValues)
+    
+  }catch(e){
+    console.error(e)
+    if(e.message == 'cannot bulk delete all admin users')
+      return res.status(400).send('could not delete admin user')
+    return res.sendStatus(500)
+  }
+})
 
 module.exports = router

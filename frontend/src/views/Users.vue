@@ -3,13 +3,20 @@
     Table(:columns="columns" :data="tableData" border disabled- size="small")
       template(slot-scope="{ row, index }" slot="xoxo") 
         div {{row.admin}}
-          Switch(v-model="x" @on-change="change")
-      template(slot-scope="{ row, index }" slot="action")
+      template( slot="action")
+        Button(slot-scope="{ row, index }" ) 
+          p is
+        Tooltip(slot-scope="{ row, index }" content="remove from admin group" placement="top" v-if="index==2" )
+          Button(slot-scope="{ row, index }" size="small" type="warning" @click="removeFromAdmin(row)" ) 
+            Icon(type="md-remove-circle")
+        Tooltip( slot-scope="{ row, index }" content="Add to admin group" placement="top" v-if="index==2" )
+          Button(slot-scope="{ row, index }" size="small" type="success" @click="addToAdmin(row)" )
+            Icon(type="md-person-add")
         Tooltip(content="Reset user password" placement="top")
-          Button.btn( @click="resetPassword(row)" )
+          Button(size="small"  @click="resetPassword(row)" )
             Icon(type="md-refresh")
         Tooltip(content="Delete User" placement="top")
-          Button.btn(type="error" @click="deleteUser(row)" )
+          Button(size="small" type="error" slot-scope="{ row, index }" @click="deleteUser(row)" )
             Icon(type="ios-trash-outline")
   ErrorPage(v-else :status="status" :statusMessage="statusMessage")
 
@@ -33,8 +40,19 @@ export default class Users extends Vue{
   users = []
   x = true
 
-  deleteUser(row){
-    console.log('we have to delete ', row.username)
+  async deleteUser(row){
+    let token = vxm.user.usertoken
+    let config = {headers:{Authentication: `Bearer ${token}`}}
+    let username = row.username
+    try{
+        let response = await axios.delete(`${Config.server.USERS_URL}/${username}`, config)
+        this.reloadPage()
+        console.dir(response)
+        this.$Message.success({  content: `user deleted successfully`, duration: 2 })
+    }catch(err){
+        let errorMessage =  ( err.response && err.response.data ) ? err.response.data : err.message
+        this.$Message.error({  content: `${errorMessage}`, duration: 3 })
+    }
   }
 
   resetPassword(row){
@@ -46,12 +64,15 @@ export default class Users extends Vue{
       {title:'id', key:'id', width: 60}, 
       {title:'username', key:'username'}, 
       {title:'email', key:'email'}, 
-      {title:'admin priviledges', slot:"xoxo", key:'admin'}, 
-      {title:'action', slot:'action', width: 180, align:'center'}]
+      {title:'admin priviledges', key:'admin'}, 
+      {title:'user options', slot:'action', width: 200, align:'center'}]
   }
 
-  change(){
+  addToAdmin(){}
+  removeFromAdmin(){}
 
+  change(){
+    this.reloadPage()
   }
 
   get tableData(){
@@ -65,17 +86,24 @@ export default class Users extends Vue{
     }) : []
   }
 
-  async created(){
+  async reloadPage(){
     let response = await this.axiosGetRequest(Config.server.USERS_URL)
     this.users = ( response  && response.data) ? response.data : null
+  }
+
+  async created(){
+    this.reloadPage()
   }
 }
 
 </script>
 
 <style lang="sass" scoped>
-.btn 
+.ivu-btn
   margin-left: 3px
   margin-right: 3px
+  border: 1px solid gray
+  background: white
+  color: black
 
 </style>

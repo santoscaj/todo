@@ -10,6 +10,7 @@ import PageNotFound from '../views/PageNotFound.vue';
 import Logout from '../views/Logout.vue';
 // import myVue from '@/main'
 import {vxm } from '@/store'
+import { getNamespacedPath } from 'vuex-class-component/dist/module';
 Vue.use(VueRouter);
 
 const routes: RouteConfig[] = [
@@ -17,13 +18,14 @@ const routes: RouteConfig[] = [
     path: '/',
     name: 'Home',
     component: Home,
+    redirect: {name: 'Login'}
   },
   {
     path: '/login',
     name: 'Login',
     component: Login, // () => import('../views/Login.vue'),
     meta:{
-      guest: true
+      onlyGuests: true
     }
   },
   {
@@ -31,7 +33,7 @@ const routes: RouteConfig[] = [
     name: 'Register',
     component:Register, // () => import('../views/Register.vue'),
     meta:{
-      guest: true
+      onlyGuests: true
     }
   },
   {
@@ -59,7 +61,19 @@ const routes: RouteConfig[] = [
     component: Profile, // () => import('../views/Profile.vue'),
     meta:{
       requiresAuth: true,
-      pageTitle: 'User Settings'
+      pageTitle: 'User Settings',
+      firstTime: false
+    },
+    // check afterEach router configuration below 
+    beforeEnter: (to, from, next)=>{
+      let username = from.params.username || localStorage.getItem('username')
+      if(!username)
+        next({name:'Login'})
+      else if(username && from.name=='Register'){
+        to.meta.firstTime = true
+        next()
+      }else 
+        next()
     }
   },
   {
@@ -68,7 +82,7 @@ const routes: RouteConfig[] = [
     beforeEnter: (to, from, next)=>{
       localStorage.clear()
       vxm.user.logout()
-      next('/login')
+      next({name:'Login'})
       // myVue.$Message.success('logout successful')
     }
   },
@@ -85,15 +99,29 @@ const router = new VueRouter({
   routes,
 });
 
+router.afterEach((to, from)=>{
+  if(from.name == 'Profile')
+    from.meta.firstTime = false
+})
+
 router.beforeEach((to, from, next)=>{
+  let username = localStorage.getItem('username') || ((vxm.user.activeUser) ? vxm.user.activeUser.username : '')
+  let userIsLoggedIn = (username) ? (localStorage.getItem('token') || vxm.user.userIsLoggedIn) : false
+
   if(to.matched.some(page=> page.meta.requiresAuth)){
-    if(localStorage.getItem('token'))
+    if(userIsLoggedIn)
       next()
     else{
-      if(from.path == '/login')
+      if(from.name == 'Login')
         next(false)
-      next({path:'/login'})
+    next({name:'Login'})
     }
+  }else if(to.matched.some(page=>page.meta.onlyGuests)){
+    if(userIsLoggedIn){
+      next({name:'Todos', params: {username}})
+    }
+    else
+      next()
   }else{
     next()
   }

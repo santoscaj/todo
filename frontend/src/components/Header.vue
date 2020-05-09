@@ -4,7 +4,8 @@ Header
     .header-title {{title}}
     .menu(@click.stop="showOrNot(!show)")
         .username {{activeUser.username}}
-        Avatar(size="small" :src="activeUser.image_link" v-if="login")
+        Avatar(size="small" :src="activeUser.image_link" v-if="login && activeUser.image_link")
+        Avatar(size="small" icon="ios-person" style="background:darkred" :src="activeUser.image_link" v-if="login && !activeUser.image_link") {{activeUser.username}}
         Icon.menu-icon(type="ios-arrow-down" v-if="login")
         transition(name="my-transition")
             .sub-menu(v-if="show" @click.stop="showOrNot(!show)" ref="sub")
@@ -80,7 +81,6 @@ export default class MyHeader extends Vue{
     .menu-icon:hover
         color: white
         animation: slide 2s ease-in-out .5s infinite alternate
-
 
     .sub-menu
         position: absolute

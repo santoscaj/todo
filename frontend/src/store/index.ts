@@ -12,6 +12,7 @@ function emptyUser(){
     password: "",
     email: "",
     is_admin: false,
+    account_is_active: false,
     todos: [],
     firstName: "",
     lastName: "",
@@ -37,6 +38,7 @@ export interface User{
   password: string;
   email: string;
   is_admin: boolean;
+  account_is_active: boolean;
   todos?: Todo[];
   firstName?: string | undefined | null;
   lastName: string | undefined | null;

@@ -3,7 +3,7 @@
     Welcome(v-if="firstTime")
     .parent-settings
       .settings
-        img.profile-pic(:src="user.image_link" v-if="imageAvailable")
+        img.profile-pic(:src="draftUser.image_link" v-if="imageAvailable")
         .mini-header
           Tooltip( content="Edit your info" placement="top" theme="light")
             Button(size="small" v-show="!edit" @click="editUser()" type="warning")
@@ -15,17 +15,17 @@
             Button(size="small" v-show="edit" @click="saveUser()" type="success")
               Icon(type="md-checkmark")
         p.label username
-        Input(:disabled="!edit" v-model="user.username")
+        Input(:disabled="!edit" v-model="draftUser.username")
         p.label email
-        Input(:disabled="!edit" v-model="user.email")
+        Input(:disabled="!edit" v-model="draftUser.email")
         p.label First Name
-        Input(:disabled="!edit"  v-model="user.firstName")
+        Input(:disabled="!edit"  v-model="draftUser.firstName")
         p.label Last Name
-        Input(:disabled="!edit" v-model="user.lastName")
+        Input(:disabled="!edit" v-model="draftUser.lastName")
         p.label Admin priviledges
         Input(:disabled="true" v-model="userIsAdmin")
         p.label Profile Picture
-        Input(:disabled="!edit" v-model="user.image_link")
+        Input(:disabled="!edit" v-model="draftUser.image_link")
       .password-area
         a.change-password-link(@click="changePassword") change password
         ChangePassword(:showPassword="display" @update:showPassword="updatedPassword($event)")
@@ -35,26 +35,17 @@
 </template>
 
 <script>
-import {Vue, Component} from 'vue-property-decorator'
+import {Vue, Component, Watch} from 'vue-property-decorator'
 import ChangePassword from '@/components/ChangePassword.vue'
 import Welcome from '@/components/Welcome.vue'
-import axiosRequest from '@/mixins/axiosRequest'
+import {AxiosGetRequest, AxiosPutRequest} from '@/mixins/axiosRequest'
 import Config from '@/config'
 import axios from 'axios'
 import ErrorPage from '@/components/ErrorPage.vue'
 import  { vxm } from '@/store'
 
-
-@Component({
-  components: {ChangePassword, Welcome, ErrorPage},
-  mixins: [axiosRequest]
-})
-export default class Profile extends Vue {
-  edit = false
-  display = false
-  user = null
-
-  user = {
+function emptyUser(){
+  return {
     id: '',
     username: '',
     password: '',
@@ -64,6 +55,17 @@ export default class Profile extends Vue {
     lastName: '',
     image_link: ''
   }
+}
+
+@Component({
+  components: {ChangePassword, Welcome, ErrorPage},
+  mixins: [AxiosGetRequest, AxiosPutRequest]
+})
+export default class Profile extends Vue {
+  edit = false
+  display = false
+  draftUser = emptyUser()
+  user = emptyUser()
 
   get firstTime(){
     return this.$route.meta.firstTime
@@ -73,6 +75,10 @@ export default class Profile extends Vue {
     return Boolean(this.user.image_link)
   }
 
+  @Watch('user')
+  onUserChange(val){
+    this.draftUser = {...this.user}
+  }
 
   async deleteCurrentAccount(){
     let token = vxm.user.usertoken
@@ -82,16 +88,51 @@ export default class Profile extends Vue {
         let response = await axios.delete(`${Config.server.USERS_URL}/${username}`, config)
         this.$Message.success({  content: `user deleted successfully`, duration: 2 })
         this.$router.push({name:'Logout'})
+
     }catch(err){
         let errorMessage =  ( err.response && err.response.data ) ? err.response.data : err.message
         this.$Message.error({  content: `${errorMessage}`, duration: 3 })
     }
   }
   
-  saveUser(){
-    this.edit=false
+  get fieldsToBeUpdated(){
+    return {
+      username: this.draftUser.username,
+      email: this.draftUser.email,
+      firstName: this.draftUser.firstName,
+      lastName: this.draftUser.lastName,
+      image_link: this.draftUser.image_link,
+    }
   }
-  discardChanges(){}
+
+  async saveUser(){
+    let usernameChanged = this.user.username != this.draftUser.username 
+    console.log(usernameChanged, this.user.username, this.draftUser.username)
+    let username = this.$route.params.username
+    
+    try{
+      let response = await this.axiosPutRequest(`${Config.server.USERS_URL}/${username}`, this.fieldsToBeUpdated, 'saved successfully')
+      if(response){
+        vxm.user.setActiveUser(response.data.user)
+        this.user = {...this.user, ...response.data.user}
+        if(usernameChanged){
+          localStorage.setItem('username', response.data.user.username)
+          localStorage.setItem('token', response.data.accessToken)
+          vxm.user.setToken(response.data.accessToken)
+          this.$router.push({name:'Profile', params:{username:response.data.user.username}})
+        }
+        this.edit = false
+      }
+    }catch(e){
+      console.error(e)
+    }
+    
+  }
+  discardChanges(){
+    this.draftUser = {...this.user}
+    this.edit = false
+  }
+
   editUser(){
     this.edit = !this.edit
   }

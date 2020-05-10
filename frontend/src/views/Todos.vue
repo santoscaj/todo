@@ -16,9 +16,9 @@ import Config from '@/config'
 import {vxm} from '@/store'
 import axios from 'axios'
 import ErrorPage from '@/components/ErrorPage.vue'
-import AxiosRequest from '@/mixins/axiosRequest'
+import {AxiosGetRequest} from '@/mixins/axiosRequest'
 
-@Component({components:{ErrorPage},  mixins: [AxiosRequest]} )
+@Component({components:{ErrorPage},  mixins: [AxiosGetRequest]} )
 export default class Todos extends Vue {
   user = null
   statusMessage = 'default'

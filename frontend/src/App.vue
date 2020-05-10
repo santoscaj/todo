@@ -3,17 +3,17 @@
     Layout
       Header
       Layout
-        Sider
+        Sider(collapsible :collapsed-width="78" v-model="isCollapsed")
           transition-group(name="slide-right")
             router-link.side-link(:to="{name: 'Todos', params: {username: activeUser.username }}" v-if="login" key="todos") 
               Icon(type="md-clipboard") 
-              span Todos
+              span(v-if="!isCollapsed") Todos
             router-link.side-link(:to="{name: 'Users'}" :disabled="!activeUser.is_admin" v-if="login" key="management") 
               Icon(type="md-people") 
-              span Management
+              span(v-if="!isCollapsed") Management
             router-link.side-link(:to="{name: 'Profile', params: {username: activeUser.username }}" v-if="login" key="profile") 
               Icon(type="md-person") 
-              span Profile
+              span(v-if="!isCollapsed") Profile
         Content
           transition(name="slide-left")
             router-view
@@ -31,6 +31,7 @@ import {myRoutes} from './router'
   components: { Header }
 })
 export default class App extends Vue {
+  isCollapsed=false
   get activeUser(){
     return vxm.user.activeUser
   }
@@ -124,6 +125,9 @@ body
     background:  rgb(0,0,0,0.1)
     color: lightgray
 
+.collapse-btn
+  background: red
+
 .flex
   display: flex
   justify-content: space-between
@@ -144,6 +148,8 @@ body
 .slide-left-enter, .slide-left-leave-to
   display: none
 
+.ivu-layout-sider-trigger
+  background: transparent !important 
 
 
 // .slide-right-enter-active 

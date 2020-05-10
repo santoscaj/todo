@@ -7,6 +7,7 @@ const {User, Todo, Sequelize, sequelize} = require('./sq')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const cleanObject = require('./utils/cleanData')
+let crypto = require('crypto')
 const activeUsersTokens = require('./utils/activeUsersTokens')
 
 const DESIRED_USER_FIELDS = ['id','username', 'email','is_admin', 'firstName','lastName', 'image_link']
@@ -17,6 +18,10 @@ router.use(bodyParser.urlencoded({ extended: false }));
 router.use(bodyParser.json());
 
 
+function generateRandomPassword(numchars){
+    let bytes = numchars / 2
+    let password = crypto.randomBytes(bytes).toString('hex')
+}
 
 // router.delete('/usertoken', (req, res)=>{
 //   let token = req.body.token
@@ -166,7 +171,7 @@ router.get('/user/:pageOwner', async(req, res)=>{
     let queryUser = await User.findOne({where:{id}})
     if (!queryUser) return res.sendStatus(401)
     if(queryUser.dataValues.username !== pageOwner) return res.sendStatus(403)
-    res.json(queryUser.dataValues)
+    res.json(cleanObject(queryUser.dataValues, DESIRED_USER_FIELDS))
 
   }catch(e){
     if(e.message == 'invalid token') return res.status(400).send(e.message)
@@ -233,14 +238,50 @@ router.delete('/users/:username', async (req, res)=>{
     if(userToBeDeleted!== userDeleting && !userDeletingFull.is_admin) return res.sendStatus(403)
 
     let userDeletedResults = await User.destroy({where:{username:userToBeDeleted}})
-    res.json(userDeletedResults.dataValues)
+    res.json(cleanObject(userDeletedResults.dataValues, DESIRED_USER_FIELDS))
     
   }catch(e){
     console.error(e)
-    if(e.message == 'cannot bulk delete all admin users')
-      return res.status(400).send('could not delete admin user')
+    if(/Cannot delete.*admin user/.test(e.message))
+      return res.status(400).send(e.message)
     return res.sendStatus(500)
   }
 })
+
+
+router.put('/users/:username', async (req, res)=>{
+  let userToBeUpdated = req.params.username
+  let data = req.body
+  let token = req.get('Authentication')
+  if(!token || !userToBeUpdated || !data) return res.sendStatus(400)
+  token = token.split(' ')[1]
+
+  try{
+    let webtoken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+    let id = webtoken.id
+
+    
+    let userToBeUpdatedFull = await User.findOne({where:{username:userToBeUpdated}})
+    let userMakingRequest = await User.findOne({where:{id}})
+
+    if (userToBeUpdated!=userMakingRequest.username && !userMakingRequest.is_admin) return res.sendStatus(403)
+    let updated = await User.update(data, {where:{username:userToBeUpdated}})
+
+    let newUpdatedUser = await User.findOne({where:{id:userToBeUpdatedFull.dataValues.id}})
+    let newAccessToken = token
+
+    if(userToBeUpdated != newUpdatedUser.dataValues.username)
+      newAccessToken = jwt.sign({id: newUpdatedUser.id, username:newUpdatedUser.username}, process.env.ACCESS_TOKEN_SECRET)
+    
+    res.json( {user:cleanObject(newUpdatedUser.dataValues, DESIRED_USER_FIELDS),accessToken:newAccessToken})
+    
+  }catch(e){
+    console.error(e)
+    if(/admin user/.test(e.message))
+      return res.status(400).send(e.message)
+    return res.sendStatus(500)
+  }
+})
+
 
 module.exports = router

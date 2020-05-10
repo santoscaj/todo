@@ -21,11 +21,11 @@ import {validatePass, validatePassCheck, validateUnique} from '@/utils/validatio
 import  { Component, Vue } from 'vue-property-decorator'
 import  { vxm } from '@/store'
 import  axios from 'axios'
-import  AxiosRequest from '@/mixins/axiosRequest'
+import  {AxiosGetRequest} from '@/mixins/axiosRequest'
 import  Config from '@/config'
 
 @Component({
-  mixins: [AxiosRequest]
+  mixins: [AxiosGetRequest]
 })
 export default class Register extends Vue{
   // uniqueFields = {

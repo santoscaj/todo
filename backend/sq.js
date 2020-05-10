@@ -24,7 +24,7 @@ async function addDefaultUsers(){
         await Todo.findOrCreate({where:{...todo, user_id: usr[0].dataValues.id}})
       }
     }catch(err){
-      console.error(err.message)
+      console.log('One or more default users have been modified')
     }
   }
 }
@@ -65,6 +65,10 @@ const User = sequelize.define('user', {
     type: Sequelize.STRING,
     allowNull: false
   },
+  account_is_active: {
+    type: Sequelize.BOOLEAN,
+    defaultValue: false
+  },
   is_admin: {
     type: Sequelize.BOOLEAN,
     defaultValue: false
@@ -82,7 +86,7 @@ const User = sequelize.define('user', {
   // options
   hooks:{
     beforeDestroy: async function(instance, options){
-      return Error('beforeDestroy this is my error');
+      return Error('beforeDestroy this is my error. Method not used and not defined');
       let adminUsers = await this.findAll({where:{is_admin:true}})
       if(!adminUsers.dataValues) throw new Error('There are no admin users')
       if(adminUsers.dataValues.length==1)  throw new Error('cannot delete last admin user')
@@ -93,8 +97,29 @@ const User = sequelize.define('user', {
       let queryAdminUsers = await this.findAll({where: {is_admin: true}})
       let adminUsersToBeDestroyed = queryUsersTobeDestroyed.map(u => u.dataValues).filter(u => u.is_admin)
       let totalAdminUsers = queryAdminUsers.map(u => u.dataValues).filter(u => u.is_admin)
-      if(totalAdminUsers.length == adminUsersToBeDestroyed.length)
-        throw new Error('cannot bulk delete all admin users')
+      if(totalAdminUsers.length == adminUsersToBeDestroyed.length){
+        if(totalAdminUsers.length==1)
+          throw new Error('Cannot delete only admin user')
+        else
+          throw new Error('Cannot delete all admin users')
+      }
+    },
+    beforeUpdate: async function(instance, options){
+      let adminUsers = await this.findAll({where:{is_admin:true}})
+      return Error('beforeUpdate this is my error. Method not used and not defined');
+      if(!adminUsers.dataValues) throw new Error('There are no admin users')
+      if(adminUsers.dataValues.length==1)  throw new Error('cannot delete last admin user')
+    },
+    // beforeBulkUpdate takes an instance that has an array of fields to be updated (fields) and their update values (attributes)
+    // This will only take effect if the field to be modified is admin and they are trying to remove the only admin left
+    beforeBulkUpdate: async function(instance){
+      let where = instance.attributes
+      if(instance.fields.includes('is_admin') && where && !where.is_admin){
+        let queryAdminUsers = await this.findAll({where: {is_admin: true}})
+        let totalAdminUsers = queryAdminUsers.map(u => u.dataValues).filter(u => u.is_admin)
+        if(totalAdminUsers.length==1)
+          throw new Error('Cannot remove only admin user')
+      }
     }
   }
 });

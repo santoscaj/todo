@@ -1,24 +1,10 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import { createModule, mutation, extractVuexModule, createProxy } from "vuex-class-component";
+import emptyUser from '@/utils/emptyUser'
 import { TreeChild } from 'view-design';
 
 Vue.use(Vuex);
-
-function emptyUser(){
-  return {
-    id: "",
-    username: "",
-    password: "",
-    email: "",
-    is_admin: false,
-    account_is_active: false,
-    todos: [],
-    firstName: "",
-    lastName: "",
-    image_link: "",
-  }
-}
 
 const VuexModule = createModule({
   namespaced: "user",

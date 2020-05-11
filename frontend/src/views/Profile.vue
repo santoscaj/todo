@@ -41,21 +41,9 @@ import Welcome from '@/components/Welcome.vue'
 import {AxiosGetRequest, AxiosPutRequest} from '@/mixins/axiosRequest'
 import Config from '@/config'
 import axios from 'axios'
+import emptyUser from '@/utils/emptyUser'
 import ErrorPage from '@/components/ErrorPage.vue'
 import  { vxm } from '@/store'
-
-function emptyUser(){
-  return {
-    id: '',
-    username: '',
-    password: '',
-    email: '',
-    is_admin: '',
-    firstName: '',
-    lastName: '',
-    image_link: ''
-  }
-}
 
 @Component({
   components: {ChangePassword, Welcome, ErrorPage},

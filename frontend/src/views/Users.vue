@@ -90,7 +90,7 @@ export default class Users extends Vue{
   }
 
   get tableData(){
-    return this.users? this.users.map(obj=>{
+    return (this.users && this.users.length >0 )? this.users.map(obj=>{
       return {
         id: obj.id,
         username: obj.username, 
@@ -105,7 +105,7 @@ export default class Users extends Vue{
 
   async reloadPage(){
     let response = await this.axiosGetRequest(Config.server.USERS_URL)
-    this.users = ( response  && response.data) ? {...this.users, ...response.data } : null
+    this.users = ( response  && response.data) ? [...this.users, ...response.data ] : null
   }
 
   async created(){

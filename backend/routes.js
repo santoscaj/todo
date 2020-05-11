@@ -284,4 +284,63 @@ router.put('/users/:username', async (req, res)=>{
 })
 
 
+
+router.put('/todos/:username/group', async (req, res)=>{
+  let userToBeUpdated = req.params.username
+  let data = req.body
+  let token = req.get('Authentication')
+  if(!token || !userToBeUpdated || !data) return res.sendStatus(400)
+  token = token.split(' ')[1]
+
+  try{
+    let webtoken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+    let id = webtoken.id
+    
+    let userMakingRequest = await User.findOne({where:{id}})
+
+    if (userToBeUpdated!=userMakingRequest.username) return res.sendStatus(403)
+    
+    for(let todo of data){
+      await Todo.update(todo, {where:{id:todo.id}})
+    }
+
+    return res.sendStatus(200)
+
+  }catch(e){
+    console.error(e)
+    if(/admin user/.test(e.message))
+      return res.status(400).send(e.message)
+    return res.sendStatus(500)
+  }
+})
+
+
+router.delete('/todos/:username/group', async (req, res)=>{
+  let username = req.params.username
+  let token = req.get('Authentication')
+  if(!token || !username) return res.sendStatus(400)
+  token = token.split(' ')[1]
+
+  try{
+    let webtoken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+    let userDeleting = webtoken.username
+    let queryResult = await User.findOne({where:{username:userDeleting}})
+    
+    if(!queryResult) return res.sendStatus(401)
+    let userDeletingFull = queryResult.dataValues
+
+    if(username!== userDeleting) return res.sendStatus(403)
+
+    let userDeletedResults = await User.destroy({where:{username:userToBeDeleted}})
+    res.json(cleanObject(userDeletedResults.dataValues, DESIRED_USER_FIELDS))
+    
+  }catch(e){
+    console.error(e)
+    if(/Cannot delete.*admin user/.test(e.message))
+      return res.status(400).send(e.message)
+    return res.sendStatus(500)
+  }
+})
+
+
 module.exports = router

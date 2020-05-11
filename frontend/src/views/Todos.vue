@@ -1,11 +1,28 @@
 <template lang="pug">
   div
     div(v-if="!errorOccurred")
-      div.cards-area
-        Card.card(v-for="todo in todos" :key="todo.id") 
-          p(slot="title") {{todo.title}}
-          p(v-for="item in todo.content" :key="item") {{item}}
-      div.my-flex
+      Input.search(v-model="search" icon="md-search" placeholder="Filter to-dos")
+      .cards-area
+        .grid-block(v-for="todo in filteredTodos" :key="todo.id") 
+          .title(slot="title") 
+            input.title-input(v-model="todo.title")
+            Button.close-btn(type="error" size="small" @click="removeTodo(todo.id)")
+              Icon(type="md-close")
+          Input(type="textarea" :rows="10" v-model="todo.content" style="width: 200px" ) 
+        .grid-block(v-for="draft in filteredDrafts" :key="draft.id") 
+          .title(slot="title") 
+            input.title-input(v-model="draft.title")
+            Button.close-btn(type="error" size="small" @click="removeDraft(draft.id)")
+              Icon(type="md-close")
+          Input(type="textarea" :rows="10" v-model="draft.content" style="width: 200px" ) 
+        .add-btn-area
+          Button.add-btn(@click="addDraft()")
+            Icon(type="md-add")
+      .apply-discard-changes
+        Button(type="error" @click="discardChanges()") Discard Changes
+          Icon(type="ios-close-circle-outline")
+        Button(type="success" @click="applyChanges()") Apply Changes
+          Icon(type="md-checkmark")
     ErrorPage(v-else :status="status" :statusMessage="statusMessage")
 
 </template>
@@ -16,14 +33,16 @@ import Config from '@/config'
 import {vxm} from '@/store'
 import axios from 'axios'
 import ErrorPage from '@/components/ErrorPage.vue'
-import {AxiosGetRequest} from '@/mixins/axiosRequest'
+import {AxiosGetRequest, AxiosPutRequest} from '@/mixins/axiosRequest'
+import {v4} from 'uuid'
 
-@Component({components:{ErrorPage},  mixins: [AxiosGetRequest]} )
+@Component({components:{ErrorPage},  mixins: [AxiosGetRequest, AxiosPutRequest]} )
 export default class Todos extends Vue {
   user = null
   statusMessage = 'default'
   status = 'default'
   errorOccurred = false
+  search=''
 
   get activeUser(){
     return vxm.user.activeUser
@@ -33,29 +52,105 @@ export default class Todos extends Vue {
     return this.$route.params.username
   }
 
-  get todos(){
+  todos = []
+  
+  @Watch('user')
+  updateTodos(){
     if (!this.user)
-      return []
-    return this.user.todos
+      this.todos =  []
+    this.todos = this.user.todos
 		.map(x=>{
       if(x)
-        return {...x, content: x.content.split('\n')}
+        return {...x}
     })
+  }
+
+  get searchKeywordsAsRegex(){
+    return this.search.split(' ').map(key=>new RegExp(key.replace(/\W/,''),'i'))
+  }
+
+  get filteredTodos(){
+    return this.todos.filter(item=> this.searchKeywordsAsRegex.some(keywordRegex=>{
+      return keywordRegex.test(item.title) || keywordRegex.test(item.content)
+    }))
+  }
+  get filteredDrafts(){
+    return this.drafts.filter(item=> this.searchKeywordsAsRegex.some(keywordRegex=>{
+      return keywordRegex.test(item.title) || keywordRegex.test(item.content)
+    }))
   }
 
   @Watch('pageOwner')
   updatePageInfo(){
-    this.getUser()
+    this.getUserInformation()
   }
+
+  drafts = []
 
   created(){
-    this.getUser()
+    this.getUserInformation()
   }
 
-  async getUser(){
+  itemsToBeRemovedFromDb = []
+
+  removeListItem(list, id, alsoDeleteItemInDb=false){
+    let index= list.indexOf(li=>li.id==id)
+    let removedItem = list.splice(index, 1)
+    console.log(alsoDeleteItemInDb, id)
+    if(alsoDeleteItemInDb)
+      this.itemsToBeRemovedFromDb.push(removedItem)
+  }
+
+  get username(){
+    return this.$route.params.username
+  }
+
+  discardChanges(){
+    this.drafts = []
+    this.updateTodos()
+    this.itemsToBeRemovedFromDb = []
+    // this.getUserInformation()
+  }
+
+  applyChanges(){
+    if(this.todos.some(item=>!item.title))
+      return this.$Message.error({content:'cannot save, there are todo items with no title', duration: 3})
+    if(this.drafts.some(item=>!item.title))
+      return this.$Message.error({content:'cannot save, there are drafts with no title', duration: 3})
+    this.deleteItems()
+    this.updateItems()
+    this.createItems()
+    this.getUserInformation()
+  }
+
+  async deleteItems(){
+    try{(`${Config.server.TODOS_URL}/${this.username}/group`, this.todos)}catch(e){}
+    }
+  async updateItems(){
+    this.axiosPutRequest(`${Config.server.TODOS_URL}/${this.username}/group`, this.todos)
+  }
+  async createItems(){
+    
+  }
+
+  removeTodo(id){
+    this.removeListItem(this.user.todos, id, true)
+  }
+
+  removeDraft(id){
+    this.removeListItem(this.drafts, id)
+  }
+
+  async getUserInformation(){
     let pageOwner = this.$route.params.username
     let response = await this.axiosGetRequest(`${Config.server.USERS_URL}/${pageOwner}/todos`)
     this.user = ( response  && response.data) ? response.data : null
+  }
+
+  addDraft(){
+    if (this.drafts.some(draft=>!draft.content || !draft.title))
+      console.log('shouldnt be added, but it did')
+    this.drafts.push({id: v4(),content: '', title:''})
   }
 
   modifyDropdownValue(newValue){
@@ -72,15 +167,67 @@ export default class Todos extends Vue {
   flex-direction: column
 
 .cards-area
-  position: absolute
-  heigth: 100%
+  position: relative
   display: grid
-  grid-template-rows: repeat(auto-fill, minmax(115px, 200px))
-  grid-template-columns: repeat(auto-fill, minmax(100px, 350px))
+  width: 100%
+  height: 100%
+  grid-auto-flow: row
+  grid-template-rows: repeat(auto-fill, minmax(200px, 205px))
+  grid-template-columns: repeat(auto-fill, minmax(205px, 210px))
   grid-gap: 20px
 
-.card
-  width:100%
-  height:100%
+.grid-block
+  padding: 3px
+  background: rgb(0,0,0,0.1)
 
+.title
+  font-size: 13px
+  text-transform: uppercase
+  display: flex
+  padding: 2px 
+
+.title-input
+  text-align: center
+  width: 100%
+  background: transparent
+  border: none
+  text-transform: uppercase
+  font-weight: 600
+
+.close-btn
+  font-size: 10px
+  width: 20px
+  height: 20px
+  padding: 0
+
+.add-btn-area
+  display: flex
+  justify-content: center
+  align-items: center
+  min-width: 220px
+  min-height: 200px
+
+.add-btn
+  background: transparent
+  width: 60px
+  height: 60px
+  border: 1px dashed gray
+  transition: all ease .3s
+  &:hover
+    background: transparent
+    width: 65px
+    height: 65px
+    font-weight: 300
+    font-size: 25px 
+    color: gray
+    border: 1.5px dashed gray
+
+.search
+  max-widtH: 800px
+  padding: 0 0 20px 0
+
+.apply-discard-changes
+  padding: 20px
+  &>*
+    margin: 10px
 </style>

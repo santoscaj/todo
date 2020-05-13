@@ -39,7 +39,7 @@ import {Vue, Component, Watch} from 'vue-property-decorator'
 import ChangePassword from '@/components/ChangePassword.vue'
 import Welcome from '@/components/Welcome.vue'
 import {AxiosGetRequest, AxiosPutRequest} from '@/mixins/axiosRequest'
-import Config from '@/config'
+import config from '@/config'
 import axios from 'axios'
 import emptyUser from '@/utils/emptyUser'
 import ErrorPage from '@/components/ErrorPage.vue'
@@ -69,11 +69,11 @@ export default class Profile extends Vue {
   }
 
   async deleteCurrentAccount(){
-    let token = vxm.user.usertoken
-    let config = {headers:{Authentication: `Bearer ${token}`}}
+    // let token = vxm.user.usertoken
+    // let config = {headers:{Authentication: `Bearer ${token}`}}
     let username = this.$route.params.username
     try{
-        let response = await axios.delete(`${Config.server.USERS_URL}/${username}`, config)
+        let response = await axios.delete(`${config.server.USERS_URL}/${username}`)
         this.$Message.success({  content: `user deleted successfully`, duration: 2 })
         this.$router.push({name:'Logout'})
 
@@ -99,7 +99,7 @@ export default class Profile extends Vue {
     let username = this.$route.params.username
     
     try{
-      let response = await this.axiosPutRequest(`${Config.server.USERS_URL}/${username}`, this.fieldsToBeUpdated, 'saved successfully')
+      let response = await this.axiosPutRequest(`${config.server.USERS_URL}/${username}`, this.fieldsToBeUpdated, 'saved successfully')
       if(response){
         vxm.user.setActiveUser(response.data.user)
         this.user = {...this.user, ...response.data.user}
@@ -131,7 +131,8 @@ export default class Profile extends Vue {
 
   async created(){
     let pageOwner = this.$route.params.username
-    let response = await this.axiosGetRequest(Config.server.BASE_SERVER_URL+'/user/'+pageOwner)
+    console.log('pageowner',pageOwner)
+    let response = await this.axiosGetRequest(config.server.BASE_SERVER_URL+'/user/'+pageOwner)
     this.user = ( response  && response.data) ? response.data : null
   }
 

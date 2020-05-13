@@ -127,7 +127,8 @@ export default class Todos extends Vue {
     try{(`${Config.server.TODOS_URL}/${this.username}/group`, this.todos)}catch(e){}
     }
   async updateItems(){
-    this.axiosPutRequest(`${Config.server.TODOS_URL}/${this.username}/group`, this.todos)
+    let updatedItems = await this.axiosPutRequest(`${Config.server.TODOS_URL}/${this.username}/group`, this.todos)
+    console.log(updatedItems)
   }
   async createItems(){
     

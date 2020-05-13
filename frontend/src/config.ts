@@ -1,5 +1,5 @@
-import axios from 'axios'
-
+import axios, { AxiosRequestConfig } from 'axios'
+import {vxm} from './store'
 interface Server{
     BASE_SERVER_URL : string;
     LOGIN_URL:string;
@@ -49,9 +49,23 @@ const client: Client ={
 }
 
 
+axios.interceptors.request.use(
+    function (request){
+        let nonLoginUrls = [server.LOGIN_URL, server.REGISTER_URL]
+        let token = vxm.user.usertoken || localStorage.getItem('token')
+
+        if(!nonLoginUrls.includes(request.url || '') && token)
+            request.headers = {...request.headers, Authentication: `Bearer ${token}`}
+        return request
+    },
+    function(error){
+        return Promise.reject(error)
+    }
+)
+
 axios.interceptors.response.use(
     function(response){
-      return response
+        return response
     },
     function(error){
         return Promise.reject(error)

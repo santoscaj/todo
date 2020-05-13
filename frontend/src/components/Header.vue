@@ -8,7 +8,7 @@ Header
         Avatar(size="small" icon="ios-person" style="background:darkred" :src="activeUser.image_link" v-if="login && !activeUser.image_link") {{activeUser.username}}
         Icon.menu-icon(type="ios-arrow-down" v-if="login")
         transition(name="my-transition")
-            .sub-menu(v-if="show" @click.stop="showOrNot()" ref="sub")
+            .sub-menu(v-if="show" @click.stop ref="sub")
                 //- .sub-menu-item(name="user_config" :to="`/users/activeUser.username}`") Config
                 //- .sub-menu-item(v-if="activeUser.is_admin" name="manage_users" :to="`/management/users`") Management 
                 router-link.sub-menu-item(name="logout" to="/logout")
@@ -28,7 +28,7 @@ export default class MyHeader extends Vue{
     showOrNot(){
         this.show = !this.show
         if(this.show)
-            addEventListener('click',e=>{this.show=false},{once:true})
+            addEventListener('click',()=>{this.show=false},{once:true})
     }
 
     get title(){
@@ -49,10 +49,6 @@ export default class MyHeader extends Vue{
 
     logout(item){
 
-    }
-
-    mounted(){
-        addEventListener('click', this.showOrNot)
     }
 }
 </script>

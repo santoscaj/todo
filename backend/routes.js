@@ -13,23 +13,63 @@ const activeUsersTokens = require('./utils/activeUsersTokens')
 const DESIRED_USER_FIELDS = ['id','username', 'email','is_admin', 'firstName','lastName', 'image_link']
 const DESIRED_TODO_FIELDS = ['id', 'title','content']
 const DESIRED_FIELDS_ALL = [...DESIRED_USER_FIELDS,{todos:[...DESIRED_TODO_FIELDS]}]
+const NON_LOGIN_URLS =  ['/login', '/register', '/users/unique']
 
-router.use(bodyParser.urlencoded({ extended: false }));
-router.use(bodyParser.json());
-
-
+// DEFINING FUNCTIONS ////////////////////////////
 function generateRandomPassword(numchars){
     let bytes = numchars / 2
     let password = crypto.randomBytes(bytes).toString('hex')
 }
 
-// router.delete('/usertoken', (req, res)=>{
-//   let token = req.body.token
-//   if(activeUsersTokens.removeToken(token))
-//     return res.sendStatus(200)
-//   return res.sendStatus(404)
-// })
+async function authenticator(req, res, next){
+  if(NON_LOGIN_URLS.includes(req.url))
+    next()
+  else{
+    let token = req.get('Authentication')
+    if(!token) return res.sendStatus(400)
+    token = token.split(' ')[1]
 
+    try{
+      let webtoken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+      let id = webtoken.id
+      let queryResults = await User.findOne({where:{id}})
+      if (!queryResults) return res.sendStatus(401)
+      req.authenticatedUser = queryResults.dataValues
+      next()
+    }catch(e){
+      if(e.message == 'invalid token') return res.status(400).send(e.message)
+    }
+  }
+}
+
+async function getPageOwner(req, res, next){
+  let id = req.params.pageOwnerId
+  if(!id) return res.sendStatus(400)
+
+  try{
+    let queryResults = User.findOne({where:{id}})
+    if(!queryresults) return res.sendStatus(404)    // Couldnt veirify page
+
+    let pageOwner = queryResults.dataValues
+    let authenticatedUser = req.authenticatedUser
+
+    if(pageOwner.id != authenticatedUser.id && !authenticatedUser.is_admin) return sendStatus(401)
+    req.pageOwner = pageOwner
+
+  }catch(e){
+    console.error(e)
+    return res.sendStatus(500)
+  }
+  console.log('middleware ', req.params)
+  next()
+}
+
+
+router.use(bodyParser.urlencoded({ extended: false }));
+router.use(bodyParser.json());
+router.use(authenticator)
+
+// ROUTES             ////////////////////////////
 router.post('/register-admin',async (req, res)=>{
   let newUser = req.body
   try{
@@ -49,8 +89,6 @@ router.post('/register-admin',async (req, res)=>{
       return res.sendStatus(500)
   }
 })
-
-// Implemented routes
 
 router.post('/register',async (req, res)=>{
   let newUser = req.body
@@ -96,36 +134,25 @@ router.post('/login', async (req, res)=>{
   
 })
 
-
-/**
- * Users and admins have access to see the Todos of the user 
- */
-router.get('/users/:pageOwner/todos',async (req, res)=>{
+router.get('/users/:pageOwner/todos', async (req, res)=>{
+  console.log('function')
   let pageOwner = req.params.pageOwner
-  let token = req.get('Authentication')
-  if(!token || !pageOwner) return res.sendStatus(400)
-  token = token.split(' ')[1]
+  let authenticatedUser = req.authenticatedUser
   try{    
-    let webtoken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-    let id = webtoken.id
     let queryPageInfo = await User.findOne({where:{username:pageOwner}, include: Todo})
-    let queryUserInfo = await User.findOne({where:{id}})
-
-    if(!queryPageInfo) return res.sendStatus(404)     // Couldnt verify page being accessed
-    if(!queryUserInfo) return res.sendStatus(401)     // Couldnt verify user accessing the page
     
-    if((queryPageInfo.dataValues.username !== queryUserInfo.dataValues.username) && !queryUserInfo.dataValues.is_admin)
+    if(!queryPageInfo) return res.sendStatus(404)     // Couldnt verify page being accessed
+    if((queryPageInfo.dataValues.username !== authenticatedUser.username) && !authenticatedUser.is_admin) 
       return res.sendStatus(403)
     res.json(cleanObject(queryPageInfo.dataValues, DESIRED_FIELDS_ALL))
+
   }catch(e){
     if(e.message == 'invalid token') return res.status(400).send(e.message)
-    // console.error(e)
+    console.error(e)
     return res.sendStatus(500)
   }
 })
 
-
-///-------------------
 
 router.get('/activeuser', async (req, res)=>{
   try{
@@ -142,14 +169,8 @@ router.get('/activeuser', async (req, res)=>{
 
 router.get('/users', async (req, res)=>{
   try{
-    let token = req.get('Authentication')
-    token = token.split(' ')[1]
-    let webtoken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-    let id = webtoken.id
-    let accessingUser = await User.findOne({where:{id}})
-    
-    if(!accessingUser) return res.sendStatus(401)
-    if(!accessingUser.is_admin) return res.sendStatus(403)
+    let authenticatedUser = req.authenticatedUser
+    if(!authenticatedUser.is_admin) return res.sendStatus(403)
 
     let allUsers = await User.findAll({include:Todo})
     res.json(allUsers)
@@ -161,17 +182,12 @@ router.get('/users', async (req, res)=>{
 
 router.get('/user/:pageOwner', async(req, res)=>{
   let pageOwner = req.params.pageOwner
-  let token = req.get('Authentication')
-  if(!token || !pageOwner) res.sendStatus(400)
+  if(!pageOwner) res.sendStatus(400)
 
   try{
-    token = token.split(' ')[1]
-    let webtoken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-    let id = webtoken.id
-    let queryUser = await User.findOne({where:{id}})
-    if (!queryUser) return res.sendStatus(401)
-    if(queryUser.dataValues.username !== pageOwner) return res.sendStatus(403)
-    res.json(cleanObject(queryUser.dataValues, DESIRED_USER_FIELDS))
+    let authenticatedUser = req.authenticatedUser
+    if(authenticatedUser.username !== pageOwner) return res.sendStatus(403)
+    res.json(cleanObject(authenticatedUser, DESIRED_USER_FIELDS))
 
   }catch(e){
     if(e.message == 'invalid token') return res.status(400).send(e.message)
@@ -179,20 +195,6 @@ router.get('/user/:pageOwner', async(req, res)=>{
     console.error(e)
   }
 })
-
-// console.log('-===================================================')
-// ;((async function(){
-//   try{ 
-//     let oneField = await User.findAll({attributes: ['username', 'email']})
-//     console.log(oneField)
-//   }catch(e){
-//     // if(e.message == 'cannot bulk delete all admin users')
-//     //   console.log('You got what you wnated')
-//     // else 
-//       console.dir(e)
-//   }
-// })())
-
 
 router.get('/users/unique', async (req,res)=>{
   let allFields = sequelize.models.user.rawAttributes
@@ -223,19 +225,10 @@ router.get('/users/unique', async (req,res)=>{
 
 router.delete('/users/:username', async (req, res)=>{
   let userToBeDeleted = req.params.username
-  let token = req.get('Authentication')
-  if(!token || !userToBeDeleted) return res.sendStatus(400)
-  token = token.split(' ')[1]
 
   try{
-    let webtoken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-    let userDeleting = webtoken.username
-    let queryResult = await User.findOne({where:{username:userDeleting}})
-    
-    if(!queryResult) return res.sendStatus(401)
-    let userDeletingFull = queryResult.dataValues
-
-    if(userToBeDeleted!== userDeleting && !userDeletingFull.is_admin) return res.sendStatus(403)
+    let authenticatedUser = req.authenticatedUser
+    if(userToBeDeleted!== authenticatedUser.username && !authenticatedUser.is_admin) return res.sendStatus(403)
 
     let userDeletedResults = await User.destroy({where:{username:userToBeDeleted}})
     res.json(cleanObject(userDeletedResults.dataValues, DESIRED_USER_FIELDS))
@@ -252,19 +245,13 @@ router.delete('/users/:username', async (req, res)=>{
 router.put('/users/:username', async (req, res)=>{
   let userToBeUpdated = req.params.username
   let data = req.body
-  let token = req.get('Authentication')
-  if(!token || !userToBeUpdated || !data) return res.sendStatus(400)
-  token = token.split(' ')[1]
+  let  { authenticatedUser } = req
+  if(!userToBeUpdated || !data) return res.sendStatus(400)
 
   try{
-    let webtoken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-    let id = webtoken.id
-
-    
     let userToBeUpdatedFull = await User.findOne({where:{username:userToBeUpdated}})
-    let userMakingRequest = await User.findOne({where:{id}})
 
-    if (userToBeUpdated!=userMakingRequest.username && !userMakingRequest.is_admin) return res.sendStatus(403)
+    if (userToBeUpdated!=authenticatedUser.username && !authenticatedUser.is_admin) return res.sendStatus(403)
     let updated = await User.update(data, {where:{username:userToBeUpdated}})
 
     let newUpdatedUser = await User.findOne({where:{id:userToBeUpdatedFull.dataValues.id}})
@@ -288,24 +275,21 @@ router.put('/users/:username', async (req, res)=>{
 router.put('/todos/:username/group', async (req, res)=>{
   let userToBeUpdated = req.params.username
   let data = req.body
-  let token = req.get('Authentication')
-  if(!token || !userToBeUpdated || !data) return res.sendStatus(400)
-  token = token.split(' ')[1]
+  let { authenticatedUser } = req
+
+  if(!userToBeUpdated || !data) return res.sendStatus(400)
 
   try{
-    let webtoken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-    let id = webtoken.id
-    
-    let userMakingRequest = await User.findOne({where:{id}})
-
-    if (userToBeUpdated!=userMakingRequest.username) return res.sendStatus(403)
+    if (userToBeUpdated!=authenticatedUser.username) return res.sendStatus(403)
     
     for(let todo of data){
       await Todo.update(todo, {where:{id:todo.id}})
     }
-
-    return res.sendStatus(200)
-
+    
+    const updatedTodos = await Todo.findAll({ where:{ id: data.map(d => d.id) }})
+    res.json(updatedTodos.map(obj=>cleanObject(obj,DESIRED_TODO_FIELDS)))
+    console.log(updatedTodos)
+    
   }catch(e){
     console.error(e)
     if(/admin user/.test(e.message))
@@ -314,26 +298,19 @@ router.put('/todos/:username/group', async (req, res)=>{
   }
 })
 
-
 router.delete('/todos/:username/group', async (req, res)=>{
   let username = req.params.username
-  let token = req.get('Authentication')
-  if(!token || !username) return res.sendStatus(400)
-  token = token.split(' ')[1]
+  let data = req.body
+  let authenticatedUser
+  if(!username) return res.sendStatus(400)
 
   try{
-    let webtoken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-    let userDeleting = webtoken.username
-    let queryResult = await User.findOne({where:{username:userDeleting}})
-    
-    if(!queryResult) return res.sendStatus(401)
-    let userDeletingFull = queryResult.dataValues
+    if(username!== authenticatedUser.username) return res.sendStatus(403)
 
-    if(username!== userDeleting) return res.sendStatus(403)
+    for(let todo of data){
+      await Todo.destroy(todo, {where:{id:todo.id}})
+    }
 
-    let userDeletedResults = await User.destroy({where:{username:userToBeDeleted}})
-    res.json(cleanObject(userDeletedResults.dataValues, DESIRED_USER_FIELDS))
-    
   }catch(e){
     console.error(e)
     if(/Cannot delete.*admin user/.test(e.message))
@@ -341,6 +318,5 @@ router.delete('/todos/:username/group', async (req, res)=>{
     return res.sendStatus(500)
   }
 })
-
 
 module.exports = router

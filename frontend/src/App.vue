@@ -24,7 +24,7 @@ import { Component, Vue } from 'vue-property-decorator';
 import Header from './components/Header.vue';
 import axios from 'axios'
 import {vxm, User } from './store'
-import Config from './config'
+import config from './config'
 import {myRoutes} from './router'
 
 @Component({
@@ -44,13 +44,13 @@ export default class App extends Vue {
     return myRoutes.map(r=>r.path.replace(/:\w*/,'santoscaj'))
   }
   
+
   async beforeCreate(){
     let token = localStorage.getItem('token')
     if(token){
       vxm.user.setToken(token)
       try{
-        let config = {headers: {Authentication: `Bearer ${token}` } }
-        let response = await axios.get(Config.server.GET_ACTIVE_USER, config)
+        let response = await axios.get(config.server.GET_ACTIVE_USER)
         vxm.user.setActiveUser(response.data)
       }catch(e){
         console.error(e)

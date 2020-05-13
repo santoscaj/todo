@@ -44,8 +44,8 @@ export default class Users extends Vue{
   x = true
 
   async deleteUser(row){
-    let token = vxm.user.usertoken
-    let config = {headers:{Authentication: `Bearer ${token}`}}
+    // let token = vxm.user.usertoken
+    // let config = {headers:{Authentication: `Bearer ${token}`}}
     let username = row.username
     try{
         let response = await axios.delete(`${Config.server.USERS_URL}/${username}`, config)

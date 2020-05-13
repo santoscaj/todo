@@ -12,8 +12,6 @@ export class AxiosGetRequest extends Vue{
     
     async axiosGetRequest(getUrl){
         let response = null
-        // let token = vxm.user.usertoken
-        // let config = {headers:{Authentication: `Bearer ${token}`}}
         try{
             response = await axios.get(getUrl)
             this.status = response.status
@@ -30,11 +28,8 @@ export class AxiosGetRequest extends Vue{
 
 @Component
 export class AxiosPutRequest extends Vue{
-
     async axiosPutRequest(getUrl, data, messageOnSuccess= 'Modified user successfully'){
         let response = null
-        // let token = vxm.user.usertoken
-        // let config = {headers:{Authentication: `Bearer ${token}`}}
         try{
             response = await axios.put(getUrl, data)
             this.$Message.success(messageOnSuccess)

@@ -69,8 +69,6 @@ export default class Profile extends Vue {
   }
 
   async deleteCurrentAccount(){
-    // let token = vxm.user.usertoken
-    // let config = {headers:{Authentication: `Bearer ${token}`}}
     let username = this.$route.params.username
     try{
         let response = await axios.delete(`${config.server.USERS_URL}/${username}`)

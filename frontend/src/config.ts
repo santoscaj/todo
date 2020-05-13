@@ -9,6 +9,7 @@ interface Server{
     TOKENS_URL: string;
     GET_ACTIVE_USER: string;
     UNIQUE_FIELDS: string;
+    CHECK_USER: string;
 }
 
 interface Client{
@@ -31,10 +32,11 @@ let BASE_CLIENT_URL:string="http://localhost:8080"
 const server :Server ={
     BASE_SERVER_URL : BASE_SERVER_URL,
     LOGIN_URL:BASE_SERVER_URL+"/login",
+    REGISTER_URL:BASE_SERVER_URL+"/register",
     GET_ACTIVE_USER: BASE_SERVER_URL+"/activeuser",
     USERS_URL: BASE_SERVER_URL+"/users",
     UNIQUE_FIELDS: BASE_SERVER_URL+"/users/unique",
-    REGISTER_URL:BASE_SERVER_URL+"/register",
+    CHECK_USER: BASE_SERVER_URL+"/users/checkuser",
     TODOS_URL: BASE_SERVER_URL+"/todos",
     TOKENS_URL: BASE_SERVER_URL+"/usertoken",
 }

@@ -22,7 +22,7 @@ import  { Component, Vue } from 'vue-property-decorator'
 import  { vxm } from '@/store'
 import  axios from 'axios'
 import  {AxiosGetRequest} from '@/mixins/axiosRequest'
-import  Config from '@/config'
+import  config from '@/config'
 
 @Component({
   mixins: [AxiosGetRequest]
@@ -57,11 +57,11 @@ export default class Register extends Vue{
   }
 
   async created(){
-    let response = await this.axiosGetRequest(Config.server.UNIQUE_FIELDS)
-    let uniqueFields = response.data
+    // let response = await this.axiosGetRequest(config.server.UNIQUE_FIELDS)
+    // let uniqueFields = response.data
     
-    this.myRules.username.push({validator: validateUnique(uniqueFields.username), trigger: 'blur' })
-    this.myRules.email.push({validator: validateUnique(uniqueFields.email), trigger: 'blur' })
+    // this.myRules.username.push({validator: validateUnique(uniqueFields.username), trigger: 'blur' })
+    // this.myRules.email.push({validator: validateUnique(uniqueFields.email), trigger: 'blur' })
   }
 
   async handleSubmit(){
@@ -71,7 +71,7 @@ export default class Register extends Vue{
         email:this.myForm.email,
         password:this.myForm.password
       }
-      let response = await axios.post(Config.server.REGISTER_URL, data)
+      let response = await axios.post(config.server.REGISTER_URL, data)
       let token = response.data.accessToken
       let user = response.data.user
       vxm.user.setActiveUser(user)

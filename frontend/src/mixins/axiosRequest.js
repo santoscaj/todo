@@ -4,6 +4,15 @@ import {vxm} from '@/store'
 import axios from 'axios'
 
 
+function getRoute(url, params){
+    for(let param of Object.keys(params)){
+    url = url.replace(':'+param,params[param])
+    }
+    console.log(url)
+    if(url.includes(':'))
+        throw new Error('one or more parameter was not specified in the route')
+return url
+}
 @Component
 export class AxiosGetRequest extends Vue{
     status = ''
@@ -41,3 +50,17 @@ export class AxiosPutRequest extends Vue{
         return response
     }
 }
+
+@Component
+export class AxiosDeleteRequest extends Vue{
+    async axiosDeleteRequest(getUrl, data ){
+        let response = null
+        try{
+            response = await axios.put(getUrl, data)
+        }catch(err){
+            console.dir(err)
+        }
+        return response
+    }
+}
+

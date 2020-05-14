@@ -33,16 +33,16 @@ import Config from '@/config'
 import {vxm} from '@/store'
 import axios from 'axios'
 import ErrorPage from '@/components/ErrorPage.vue'
-import {AxiosGetRequest, AxiosPutRequest} from '@/mixins/axiosRequest'
+import {AxiosGetRequest, AxiosPutRequest, AxiosDeleteRequest} from '@/mixins/axiosRequest'
 import {v4} from 'uuid'
 
-@Component({components:{ErrorPage},  mixins: [AxiosGetRequest, AxiosPutRequest]} )
+@Component({components:{ErrorPage},  mixins: [AxiosGetRequest, AxiosPutRequest, AxiosDeleteRequest]} )
 export default class Todos extends Vue {
   user = null
-  statusMessage = 'default'
-  status = 'default'
-  errorOccurred = false
   search=''
+  todos = []
+  drafts = []
+  itemsToBeRemovedFromDb = []
 
   get activeUser(){
     return vxm.user.activeUser
@@ -50,19 +50,6 @@ export default class Todos extends Vue {
   
   get pageOwner(){
     return this.$route.params.username
-  }
-
-  todos = []
-  
-  @Watch('user')
-  updateTodos(){
-    if (!this.user)
-      this.todos =  []
-    this.todos = this.user.todos
-		.map(x=>{
-      if(x)
-        return {...x}
-    })
   }
 
   get searchKeywordsAsRegex(){
@@ -79,37 +66,45 @@ export default class Todos extends Vue {
       return keywordRegex.test(item.title) || keywordRegex.test(item.content)
     }))
   }
+  
+  get username(){
+    return this.$route.params.username
+  }
+
+  async getUserInformation(){
+    let pageOwner = this.$route.params.username
+    let response = await this.axiosGetRequest(`${Config.server.TODOS_URL}/${pageOwner}`)
+    this.todos = response.data
+  }
 
   @Watch('pageOwner')
   updatePageInfo(){
     this.getUserInformation()
   }
 
-  drafts = []
-
   created(){
     this.getUserInformation()
   }
 
-  itemsToBeRemovedFromDb = []
-
   removeListItem(list, id, alsoDeleteItemInDb=false){
     let index= list.indexOf(li=>li.id==id)
     let removedItem = list.splice(index, 1)
-    console.log(alsoDeleteItemInDb, id)
     if(alsoDeleteItemInDb)
       this.itemsToBeRemovedFromDb.push(removedItem)
   }
 
-  get username(){
-    return this.$route.params.username
+  removeTodo(id){
+    this.removeListItem(this.todos, id, true)
+  }
+
+  removeDraft(id){
+    this.removeListItem(this.drafts, id)
   }
 
   discardChanges(){
+    this.getUserInformation()
     this.drafts = []
-    this.updateTodos()
     this.itemsToBeRemovedFromDb = []
-    // this.getUserInformation()
   }
 
   applyChanges(){
@@ -120,32 +115,20 @@ export default class Todos extends Vue {
     this.deleteItems()
     this.updateItems()
     this.createItems()
-    this.getUserInformation()
+    // this.getUserInformation()
   }
 
   async deleteItems(){
-    try{(`${Config.server.TODOS_URL}/${this.username}/group`, this.todos)}catch(e){}
+    try{
+      (`${Config.server.TODOS_URL}/${this.username}/group`, this.todos)
+      }catch(e){}
     }
   async updateItems(){
-    let updatedItems = await this.axiosPutRequest(`${Config.server.TODOS_URL}/${this.username}/group`, this.todos)
-    console.log(updatedItems)
+    let response = await this.axiosPutRequest(`${Config.server.TODOS_URL}/${this.username}/group`, this.todos)
+    this.todos = response.data
   }
   async createItems(){
     
-  }
-
-  removeTodo(id){
-    this.removeListItem(this.user.todos, id, true)
-  }
-
-  removeDraft(id){
-    this.removeListItem(this.drafts, id)
-  }
-
-  async getUserInformation(){
-    let pageOwner = this.$route.params.username
-    let response = await this.axiosGetRequest(`${Config.server.USERS_URL}/${pageOwner}/todos`)
-    this.user = ( response  && response.data) ? response.data : null
   }
 
   addDraft(){

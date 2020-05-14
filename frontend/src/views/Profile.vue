@@ -130,7 +130,7 @@ export default class Profile extends Vue {
   async created(){
     let pageOwner = this.$route.params.username
     console.log('pageowner',pageOwner)
-    let response = await this.axiosGetRequest(config.server.BASE_SERVER_URL+'/user/'+pageOwner)
+    let response = await this.axiosGetRequest(config.server.USERS_URL+'/'+pageOwner)
     this.user = ( response  && response.data) ? response.data : null
   }
 

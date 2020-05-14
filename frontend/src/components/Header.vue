@@ -2,7 +2,7 @@
 Header
     .spacer
     .header-title {{title}}
-    .menu(@click.stop="showOrNot()")
+    .menu(@click.stop="showOrNot()" v-if="login")
         .username {{activeUser.username}}
         Avatar(size="small" :src="activeUser.image_link" v-if="login && activeUser.image_link")
         Avatar(size="small" icon="ios-person" style="background:darkred" :src="activeUser.image_link" v-if="login && !activeUser.image_link") {{activeUser.username}}

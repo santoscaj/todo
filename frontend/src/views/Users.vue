@@ -29,7 +29,7 @@
 import {Component, Vue} from 'vue-property-decorator'
 import { vxm } from '@/store'
 import axios from 'axios'
-import Config from '@/config'
+import config from '@/config'
 import {AxiosGetRequest, AxiosPutRequest} from '@/mixins/axiosRequest'
 import ErrorPage from '@/components/ErrorPage.vue'
 
@@ -44,11 +44,9 @@ export default class Users extends Vue{
   x = true
 
   async deleteUser(row){
-    // let token = vxm.user.usertoken
-    // let config = {headers:{Authentication: `Bearer ${token}`}}
     let username = row.username
     try{
-        let response = await axios.delete(`${Config.server.USERS_URL}/${username}`, config)
+        let response = await axios.delete(`${config.server.USERS_URL}/${username}`)
         this.reloadPage()
         console.dir(response)
         this.$Message.success({  content: `user deleted successfully`, duration: 2 })
@@ -70,7 +68,7 @@ export default class Users extends Vue{
   }
 
   async updateUser(user, username){
-    let response = await this.axiosPutRequest(`${Config.server.USERS_URL}/${username}`, user)
+    let response = await this.axiosPutRequest(`${config.server.USERS_URL}/${username}`, user)
     return 
     axios.put(this.user)
     this.reloadPage()
@@ -104,8 +102,8 @@ export default class Users extends Vue{
   }
 
   async reloadPage(){
-    let response = await this.axiosGetRequest(Config.server.USERS_URL)
-    this.users = ( response  && response.data) ? [...this.users, ...response.data ] : null
+    let response = await this.axiosGetRequest(config.server.USERS_URL)
+    this.users = ( response  && response.data) ? response.data : null
   }
 
   async created(){

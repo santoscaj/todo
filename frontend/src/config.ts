@@ -5,11 +5,14 @@ interface Server{
     LOGIN_URL:string;
     REGISTER_URL:string;
     USERS_URL: string;
+    PROFILE_URL: string;
+    TODOS_BULK_URL: string;
     TODOS_URL: string;
     TOKENS_URL: string;
     GET_ACTIVE_USER: string;
     // UNIQUE_FIELDS: string;
     CHECK_USER: string;
+    CHECK_EMAIL: string;
 }
 
 interface Client{
@@ -34,10 +37,13 @@ const server :Server ={
     LOGIN_URL:BASE_SERVER_URL+"/login",
     REGISTER_URL:BASE_SERVER_URL+"/register",
     GET_ACTIVE_USER: BASE_SERVER_URL+"/activeuser",
-    USERS_URL: BASE_SERVER_URL+"/users",
+    USERS_URL: BASE_SERVER_URL+"/users/",
+    PROFILE_URL: BASE_SERVER_URL+"/users/:username",
     // UNIQUE_FIELDS: BASE_SERVER_URL+"/users/unique",
-    CHECK_USER: BASE_SERVER_URL+"/users/checkuser",
-    TODOS_URL: BASE_SERVER_URL+"/todos",
+    CHECK_USER: BASE_SERVER_URL+"/users/checkuser/:username",
+    CHECK_EMAIL: BASE_SERVER_URL+"/users/checkemail/:email",
+    TODOS_URL: BASE_SERVER_URL+"/todos/:username",
+    TODOS_BULK_URL: BASE_SERVER_URL+"/todos/:username/group",
     TOKENS_URL: BASE_SERVER_URL+"/usertoken",
 }
 

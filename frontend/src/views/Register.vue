@@ -1,12 +1,14 @@
 <template lang="pug">
   div
     div.main
+      .back
+        Button(icon="ios-arrow-back" size="small" @click="goToLogin()") Back to login
       Card.card
         Form(ref="myForm" :model="myForm" :rules="myRules")
           FormItem(label="username" prop="username")
-            Input(placeholder="Enter name" v-model="myForm.username")
+            Input(placeholder="Enter name" v-model="myForm.username" @input="checkValidUsername()")
           FormItem(label="email" prop="email")
-            Input(placeholder="E-mail" v-model="myForm.email")
+            Input(placeholder="E-mail" v-model="myForm.email" @input="checkValidEmail()")
           FormItem(label="Password" prop="password")
             Input(type="password" password v-model="myForm.password")
           FormItem(label="Confirm Password" prop="passwordCheck")
@@ -21,23 +23,36 @@ import {validatePass, validatePassCheck, validateUnique} from '@/utils/validatio
 import  { Component, Vue } from 'vue-property-decorator'
 import  { vxm } from '@/store'
 import  axios from 'axios'
-import  {AxiosGetRequest} from '@/mixins/axiosRequest'
+import  {AxiosGetRequestStatus, AxiosGetRequest} from '@/mixins/axiosRequest'
 import  config from '@/config'
 
 @Component({
-  mixins: [AxiosGetRequest]
+  mixins: [AxiosGetRequestStatus, AxiosGetRequest]
 })
-export default class Register extends Vue{
-  // uniqueFields = {
-  //   username : [],
-  //   email : []
-  // }
 
+export default class Register extends Vue{
   myForm = {
     username: '',
     email: '',
     password: '',
     passwordCheck: ''
+  }
+
+  urls={
+    username : config.server.CHECK_USER,
+    email : config.server.CHECK_EMAIL
+  }
+
+  // items(per field) that have been checked in the server
+  validatedItems = {
+    username : [],
+    email : []
+  }
+
+  // items(per field) that already exist in the database
+  uniqueItems={
+    username : [],
+    email : []
   }
 
   myRules = {
@@ -56,13 +71,39 @@ export default class Register extends Vue{
     ],
   }
 
-  async created(){
-    // let response = await this.axiosGetRequest(config.server.UNIQUE_FIELDS)
-    // let uniqueFields = response.data
-    
-    // this.myRules.username.push({validator: validateUnique(uniqueFields.username), trigger: 'blur' })
-    // this.myRules.email.push({validator: validateUnique(uniqueFields.email), trigger: 'blur' })
+  addValueToRuleset(field, value){
+    this.uniqueItems[field].push(value)
+    let ruleset = this.myRules[field]
+    let index = ruleset.findIndex(validation=>validation.ref == 'uniqueValidator')
+    if(index<0)
+      this.myRules[field].push({validator: validateUnique(this.uniqueItems[field], field), trigger: 'blur', ref:'uniqueValidator'})
+    else
+      this.myRules[field].splice(index, 1, {validator: validateUnique(this.uniqueItems[field], field), trigger: 'blur', ref:'uniqueValidator'})
   }
+
+  checkUniqueFieldsDebounce(field){
+    let timeout = 0
+    return async ()=>{
+      let valueToValidate = this.myForm[field]
+      clearTimeout(timeout)
+      if(!this.validatedItems[field].includes(valueToValidate) && valueToValidate!='')
+        timeout = setTimeout(async ()=>{
+          try{
+            let config = {}
+            config[field] = valueToValidate
+            let response = await this.axiosGetRequest(this.urls[field], config)
+            if(response.data.result)
+              this.addValueToRuleset(field,valueToValidate)
+            this.validatedItems[field].push(valueToValidate)
+          }catch(e){
+            console.error(e)
+          }
+        },600)
+    }
+  }
+
+  checkValidUsername = this.checkUniqueFieldsDebounce('username')
+  checkValidEmail = this.checkUniqueFieldsDebounce('email')
 
   async handleSubmit(){
     try{
@@ -85,6 +126,10 @@ export default class Register extends Vue{
     }
   }
 
+  goToLogin(){
+    this.$router.push({name:'Login'})
+  }
+
   handleReset(name){
     this.$refs[name].resetFields()
   }
@@ -96,7 +141,24 @@ export default class Register extends Vue{
 .main
   display: flex
   justify-content: center
+  flex-direction: column
+  align-items: center
 
 .card
   width: 300px
+
+.back
+  display: flex
+  width: 300px
+
+.ivu-btn
+  background: transparent
+  border: 1px solid transparent
+  font-size:12px
+  margin: 5px
+  &:hover
+    border: 1px solid #007EA7
+    color: #007EA7
+  
+
 </style>

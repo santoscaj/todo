@@ -10,10 +10,10 @@ const cleanObject = require('./utils/cleanData')
 let crypto = require('crypto')
 const activeUsersTokens = require('./utils/activeUsersTokens')
 
-const DESIRED_USER_FIELDS = ['id','username', 'email','is_admin', 'firstName','lastName', 'image_link']
+const DESIRED_USER_FIELDS = ['id','username', 'email','is_admin', 'firstName','lastName', 'image_link', 'account_is_active']
 const DESIRED_TODO_FIELDS = ['id', 'title','content']
 const DESIRED_FIELDS_ALL = [...DESIRED_USER_FIELDS,{todos:[...DESIRED_TODO_FIELDS]}]
-const NON_LOGIN_URLS =  ['/login', '/register', '/users/unique']
+const NON_LOGIN_URLS =  ['/login', '/register', '/users/checkuser/', '/users/checkemail/']
 
 // DEFINING FUNCTIONS ////////////////////////////
 function generateRandomPassword(numchars){
@@ -22,7 +22,7 @@ function generateRandomPassword(numchars){
 }
 
 async function authenticator(req, res, next){
-  if(NON_LOGIN_URLS.includes(req.url))
+  if(NON_LOGIN_URLS.findIndex(url=>req.url.includes(url))>-1)
     next()
   else{
     let token = req.get('Authentication')
@@ -44,22 +44,17 @@ async function authenticator(req, res, next){
 
 async function getUserInfo(req, res, next){
   let username = req.params.username
-  let pageOwner = req.params.pageOwner
-
-  let userInfo = username || pageOwner
-  if(!userInfo) return res.sendStatus(400)
+  if(!username) return res.sendStatus(400)
 
   try{
-    let queryResults = await User.findOne({where:{username: userInfo}})
+    let queryResults = await User.findOne({where:{username  }})
     if(!queryResults) return res.sendStatus(404)    // Couldnt veirify page
 
     let userData = queryResults.dataValues
     let authenticatedUser = req.authenticatedUser
     if(userData.id != authenticatedUser.id && !authenticatedUser.is_admin) return sendStatus(403)
 
-    req.user = username ? userData : null
-    req.pageOwner = pageOwner ? userData : null
-
+    req.user = userData
     next()
   }catch(e){
     console.error(e)
@@ -136,7 +131,6 @@ router.post('/login', async (req, res)=>{
   
 })
 
-
 router.get('/activeuser', async (req, res)=>{
   try{
     let token = req.get('Authentication')
@@ -155,7 +149,8 @@ router.get('/users', async (req, res)=>{
     let authenticatedUser = req.authenticatedUser
     if(!authenticatedUser.is_admin) return res.sendStatus(403)
 
-    let allUsers = await User.findAll({include:Todo})
+    let queryResults = await User.findAll({include:Todo})
+    allUsers = queryResults.map(u=>cleanObject(u.dataValues, DESIRED_USER_FIELDS))
     res.json(allUsers)
   }catch(e){
     if(e.message == 'invalid token') return res.status(400).send(e.message)
@@ -163,10 +158,10 @@ router.get('/users', async (req, res)=>{
   }
 })
 
-router.get('/users/:pageOwner', getUserInfo, async(req, res)=>{
-  let {authenticatedUser, pageOwner} = req
+router.get('/users/:username', getUserInfo, async(req, res)=>{
+  let {authenticatedUser, user} = req
   try{
-    if(authenticatedUser.username !== pageOwner.username) return res.sendStatus(403)
+    if(authenticatedUser.username !== user.username) return res.sendStatus(403)
     res.json(cleanObject(authenticatedUser, DESIRED_USER_FIELDS))
 
   }catch(e){
@@ -176,10 +171,10 @@ router.get('/users/:pageOwner', getUserInfo, async(req, res)=>{
   }
 })
 
-router.get('/todos/:pageOwner', getUserInfo ,async (req, res)=>{
-  let {authenticatedUser, pageOwner } = req
+router.get('/todos/:username', getUserInfo ,async (req, res)=>{
+  let {authenticatedUser, user } = req
   try{    
-    let queryTodos = await Todo.findAll({where:{user_id:pageOwner.id}})
+    let queryTodos = await Todo.findAll({where:{user_id:user.id}})
     if(!queryTodos) res.sendStatus(204)
     let todos = queryTodos.map(result=> cleanObject(result.dataValues, DESIRED_TODO_FIELDS))
     res.json(todos)
@@ -232,7 +227,6 @@ router.delete('/users/:username', getUserInfo, async (req, res)=>{
   }
 })
 
-
 router.put('/users/:username', getUserInfo,async (req, res)=>{
   let {user, authenticatedUser} = req
   let data = req.body
@@ -257,10 +251,7 @@ router.put('/users/:username', getUserInfo,async (req, res)=>{
   }
 })
 
-
-
 router.put('/todos/:username/group', getUserInfo, async (req, res)=>{
-  // let userToBeUpdated = req.params.username
   let data = req.body
   let { authenticatedUser, user } = req
 
@@ -283,14 +274,11 @@ router.put('/todos/:username/group', getUserInfo, async (req, res)=>{
   }
 })
 
-router.delete('/todos/:username/group', async (req, res)=>{
-  let username = req.params.username
+router.delete('/todos/:username/group', getUserInfo, async (req, res)=>{
+  let {user, authenticatedUser} = req
   let data = req.body
-  let authenticatedUser
-  if(!username) return res.sendStatus(400)
-
   try{
-    if(username!== authenticatedUser.username) return res.sendStatus(403)
+    if(user.username!== authenticatedUser.username) return res.sendStatus(403)
 
     for(let todo of data){
       await Todo.destroy(todo, {where:{id:todo.id}})
@@ -302,6 +290,20 @@ router.delete('/todos/:username/group', async (req, res)=>{
       return res.status(400).send(e.message)
     return res.sendStatus(500)
   }
+})
+
+router.get('/users/checkuser/:username', async (req, res)=>{
+  let username = req.params.username
+  let queryResults = await User.findOne({where:{username}})
+  if(queryResults) return res.status(200).send({result: true})
+  res.status(200).send({result: false})
+})
+
+router.get('/users/checkemail/:email', async (req, res)=>{
+  let email = req.params.email
+  let queryResults = await User.findOne({where:{email}})
+  if(queryResults) return res.status(200).send({result: true})
+  res.status(200).send({result: false})
 })
 
 module.exports = router

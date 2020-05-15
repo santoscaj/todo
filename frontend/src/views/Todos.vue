@@ -29,14 +29,14 @@
 
 <script>
 import {Component, Vue, Watch} from 'vue-property-decorator'
-import Config from '@/config'
+import config from '@/config'
 import {vxm} from '@/store'
 import axios from 'axios'
 import ErrorPage from '@/components/ErrorPage.vue'
-import {AxiosGetRequest, AxiosPutRequest, AxiosDeleteRequest} from '@/mixins/axiosRequest'
+import {AxiosGetRequestStatus, AxiosPutRequest, AxiosDeleteRequest} from '@/mixins/axiosRequest'
 import {v4} from 'uuid'
 
-@Component({components:{ErrorPage},  mixins: [AxiosGetRequest, AxiosPutRequest, AxiosDeleteRequest]} )
+@Component({components:{ErrorPage},  mixins: [AxiosGetRequestStatus, AxiosPutRequest, AxiosDeleteRequest]} )
 export default class Todos extends Vue {
   user = null
   search=''
@@ -72,8 +72,8 @@ export default class Todos extends Vue {
   }
 
   async getUserInformation(){
-    let pageOwner = this.$route.params.username
-    let response = await this.axiosGetRequest(`${Config.server.TODOS_URL}/${pageOwner}`)
+    let username = this.$route.params.username
+    let response = await this.axiosGetRequest(config.server.TODOS_URL,{username})
     this.todos = response.data
   }
 
@@ -119,12 +119,13 @@ export default class Todos extends Vue {
   }
 
   async deleteItems(){
-    try{
-      (`${Config.server.TODOS_URL}/${this.username}/group`, this.todos)
-      }catch(e){}
-    }
+    let username = this.pageOwner
+    let response = await this.axiosDeleteRequest(config.server.TODOS_BULK_URL, {username}, this.itemsToBeRemovedFromDb)
+  }
+  
   async updateItems(){
-    let response = await this.axiosPutRequest(`${Config.server.TODOS_URL}/${this.username}/group`, this.todos)
+    let username = this.pageOwner
+    let response = await this.axiosPutRequest(config.server.TODOS_BULK_URL, {username}, this.todos)
     this.todos = response.data
   }
   async createItems(){

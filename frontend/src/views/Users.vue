@@ -30,23 +30,21 @@ import {Component, Vue} from 'vue-property-decorator'
 import { vxm } from '@/store'
 import axios from 'axios'
 import config from '@/config'
-import {AxiosGetRequest, AxiosPutRequest} from '@/mixins/axiosRequest'
+import {AxiosGetRequestStatus, AxiosPutRequest, AxiosDeleteRequest} from '@/mixins/axiosRequest'
 import ErrorPage from '@/components/ErrorPage.vue'
 
 @Component({
   components: {ErrorPage},
-  mixins: [ AxiosGetRequest, AxiosPutRequest ]
+  mixins: [ AxiosGetRequestStatus, AxiosPutRequest, AxiosDeleteRequest ]
 })
 export default class Users extends Vue{
-  status = null
-  statusMessage = null
   users = []
   x = true
 
   async deleteUser(row){
     let username = row.username
     try{
-        let response = await axios.delete(`${config.server.USERS_URL}/${username}`)
+        let response = await this.AxiosDeleteRequest(config.server.USERS_URL, {username})
         this.reloadPage()
         console.dir(response)
         this.$Message.success({  content: `user deleted successfully`, duration: 2 })
@@ -68,10 +66,11 @@ export default class Users extends Vue{
   }
 
   async updateUser(user, username){
-    let response = await this.axiosPutRequest(`${config.server.USERS_URL}/${username}`, user)
-    return 
-    axios.put(this.user)
-    this.reloadPage()
+    console.log('entering')
+    let response = await this.axiosPutRequest(config.server.PROFILE_URL, {username}, user)
+    let updatedUser = response.data.user
+    let index = this.users.findIndex(u=>u.id == updatedUser.id)
+    this.users.splice(index, 1, updatedUser)
   }
 
   changeAdminStatus(row){
@@ -81,11 +80,6 @@ export default class Users extends Vue{
 
   resetPassword(row){ }
   sendVerificationEmail(row){ }
-
-
-  change(){
-    this.reloadPage()
-  }
 
   get tableData(){
     return (this.users && this.users.length >0 )? this.users.map(obj=>{
@@ -107,6 +101,10 @@ export default class Users extends Vue{
   }
 
   async created(){
+    this.reloadPage()
+  }
+  
+  change(){
     this.reloadPage()
   }
 }

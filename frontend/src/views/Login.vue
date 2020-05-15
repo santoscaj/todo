@@ -17,7 +17,7 @@
 
 <script>
 import {Component, Vue} from 'vue-property-decorator'
-import config from '@/config.js'
+import config from '@/config'
 import {vxm} from '@/store'
 import axios from 'axios'
 

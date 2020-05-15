@@ -17,6 +17,7 @@ const sequelize = new Sequelize('todos_db','postgres','admin',{
 })
 
 async function addDefaultUsers(){
+  printedAlready = false
   for(let user of users){
     try {
       let usr = await User.findOrCreate({where:{...(user.userData) }})
@@ -24,7 +25,11 @@ async function addDefaultUsers(){
         await Todo.findOrCreate({where:{...todo, user_id: usr[0].dataValues.id}})
       }
     }catch(err){
-      console.log('One or more default users have been modified')
+      if(err.message=='Validation error' && !printedAlready){
+        console.log('One or more default users have been modified')
+        printedAlready =true
+      }else if(err.message!='Validation error')
+        console.error(err.message)
     }
   }
 }

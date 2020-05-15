@@ -2,27 +2,45 @@
 import {Component, Vue} from 'vue-property-decorator'
 import {vxm} from '@/store'
 import axios from 'axios'
+import config from '@/config'
 
 
-function getRoute(url, params){
-    for(let param of Object.keys(params)){
-    url = url.replace(':'+param,params[param])
-    }
-    console.log(url)
-    if(url.includes(':'))
-        throw new Error('one or more parameter was not specified in the route')
-return url
+function getRoute(fullPath, params){
+    if(!params) return fullPath 
+    let path = fullPath.slice(config.server.BASE_SERVER_URL.length,)
+    for(let param of Object.keys(params))
+        path = path.replace(':'+param,params[param])
+    if(path.includes(':'))
+        throw new Error(`one or more parameter was not specified in the route ${path}`)
+    let newPath = config.server.BASE_SERVER_URL+path
+return newPath
 }
 @Component
 export class AxiosGetRequest extends Vue{
+
+    async axiosGetRequest(url, params){
+        url = getRoute(url, params)
+        let response = null
+        try{
+            response = await axios.get(url)
+        }catch(err){
+            console.error(err)
+        }
+        return response
+    }
+}
+
+@Component
+export class AxiosGetRequestStatus extends Vue{
     status = ''
     statusMessage = ''
     errorOccurred = false
     
-    async axiosGetRequest(getUrl){
+    async axiosGetRequest(url, params){
+        url = getRoute(url, params)
         let response = null
         try{
-            response = await axios.get(getUrl)
+            response = await axios.get(url)
             this.status = response.status
             this.statusMessage = response.statusText
         }catch(err){
@@ -37,10 +55,11 @@ export class AxiosGetRequest extends Vue{
 
 @Component
 export class AxiosPutRequest extends Vue{
-    async axiosPutRequest(getUrl, data, messageOnSuccess= 'Modified user successfully'){
+    async axiosPutRequest(url, params, data, messageOnSuccess= 'Modified user successfully'){
+        url = getRoute(url, params)
         let response = null
         try{
-            response = await axios.put(getUrl, data)
+            response = await axios.put(url, data)
             this.$Message.success(messageOnSuccess)
         }catch(err){
             console.dir(err)
@@ -53,10 +72,12 @@ export class AxiosPutRequest extends Vue{
 
 @Component
 export class AxiosDeleteRequest extends Vue{
-    async axiosDeleteRequest(getUrl, data ){
+    async axiosDeleteRequest(url, params, data ){
+        url = getRoute(url, params)
         let response = null
+        console.log(data)
         try{
-            response = await axios.put(getUrl, data)
+            response = await axios.delete(url, data)
         }catch(err){
             console.dir(err)
         }

@@ -38,7 +38,7 @@
 import {Vue, Component, Watch} from 'vue-property-decorator'
 import ChangePassword from '@/components/ChangePassword.vue'
 import Welcome from '@/components/Welcome.vue'
-import {AxiosGetRequest, AxiosPutRequest} from '@/mixins/axiosRequest'
+import {AxiosGetRequestStatus, AxiosPutRequest, AxiosDeleteRequest} from '@/mixins/axiosRequest'
 import config from '@/config'
 import axios from 'axios'
 import emptyUser from '@/utils/emptyUser'
@@ -47,7 +47,7 @@ import  { vxm } from '@/store'
 
 @Component({
   components: {ChangePassword, Welcome, ErrorPage},
-  mixins: [AxiosGetRequest, AxiosPutRequest]
+  mixins: [AxiosGetRequestStatus, AxiosPutRequest, AxiosDeleteRequest]
 })
 export default class Profile extends Vue {
   edit = false
@@ -71,7 +71,7 @@ export default class Profile extends Vue {
   async deleteCurrentAccount(){
     let username = this.$route.params.username
     try{
-        let response = await axios.delete(`${config.server.USERS_URL}/${username}`)
+        let response = await this.AxiosDeleteRequest(config.server.USERS_URL,{username})
         this.$Message.success({  content: `user deleted successfully`, duration: 2 })
         this.$router.push({name:'Logout'})
 
@@ -97,7 +97,7 @@ export default class Profile extends Vue {
     let username = this.$route.params.username
     
     try{
-      let response = await this.axiosPutRequest(`${config.server.USERS_URL}/${username}`, this.fieldsToBeUpdated, 'saved successfully')
+      let response = await this.axiosPutRequest(config.server.PROFILE_URL,{username}, this.fieldsToBeUpdated, 'saved successfully')
       if(response){
         vxm.user.setActiveUser(response.data.user)
         this.user = {...this.user, ...response.data.user}
@@ -128,9 +128,8 @@ export default class Profile extends Vue {
   }
 
   async created(){
-    let pageOwner = this.$route.params.username
-    console.log('pageowner',pageOwner)
-    let response = await this.axiosGetRequest(config.server.USERS_URL+'/'+pageOwner)
+    let username = this.$route.params.username
+    let response = await this.axiosGetRequest(config.server.PROFILE_URL, {username})
     this.user = ( response  && response.data) ? response.data : null
   }
 

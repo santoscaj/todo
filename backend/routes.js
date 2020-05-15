@@ -28,11 +28,9 @@ async function authenticator(req, res, next){
     let token = req.get('Authentication')
     if(!token) return res.sendStatus(400)
     token = token.split(' ')[1]
-
     try{
       let webtoken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-      let id = webtoken.id
-      let queryResults = await User.findOne({where:{id}})
+      let queryResults = await User.findOne({where:{id: webtoken.id}})
       if (!queryResults) return res.sendStatus(401)
       req.authenticatedUser = queryResults.dataValues
       next()
@@ -47,7 +45,7 @@ async function getUserInfo(req, res, next){
   if(!username) return res.sendStatus(400)
 
   try{
-    let queryResults = await User.findOne({where:{username  }})
+    let queryResults = await User.findOne({where:{username}})
     if(!queryResults) return res.sendStatus(404)    // Couldnt veirify page
 
     let userData = queryResults.dataValues
@@ -75,7 +73,8 @@ router.post('/register-admin',async (req, res)=>{
       newUser.is_admin = true
       let queryResult = await User.create(newUser)
       let dbUser = queryResult ? queryResult.dataValues : null
-      let accessToken = jwt.sign({id: dbUser.id, username:dbUser.username}, process.env.ACCESS_TOKEN_SECRET)
+      // let accessToken = jwt.sign({id: dbUser.id, username:dbUser.username}, process.env.ACCESS_TOKEN_SECRET)
+      let accessToken = jwt.sign({id: dbUser.id}, process.env.ACCESS_TOKEN_SECRET)
       res.status(200).send({auth: true, accessToken, user: dbUser})
   }catch(err){
       let error = err.errors[0]
@@ -94,7 +93,8 @@ router.post('/register',async (req, res)=>{
       newUser.password = hashedPassword
       let queryResult = await User.create(newUser)
       let user = queryResult ? queryResult.dataValues : null
-      let accessToken = jwt.sign({id: user.id, username:user.username}, process.env.ACCESS_TOKEN_SECRET)
+      // let accessToken = jwt.sign({id: user.id, username:user.username}, process.env.ACCESS_TOKEN_SECRET)
+      let accessToken = jwt.sign({id: user.id}, process.env.ACCESS_TOKEN_SECRET)
       res.status(200).send({auth: true, accessToken, user})
   }catch(err){
       let error = err.errors[0]
@@ -105,7 +105,6 @@ router.post('/register',async (req, res)=>{
       else if(error.type==='unique violation')
         return res.status(409).send(error.message)
       return res.sendStatus(500)
-      console.error(err)
   }
 })
 
@@ -121,7 +120,8 @@ router.post('/login', async (req, res)=>{
       return res.sendStatus(401)
 
     let user = cleanObject(dbUser, DESIRED_USER_FIELDS)
-    let accessToken = jwt.sign({id: dbUser.id, username:dbUser.username}, process.env.ACCESS_TOKEN_SECRET)
+    // let accessToken = jwt.sign({id: dbUser.id, username:dbUser.username}, process.env.ACCESS_TOKEN_SECRET)
+    let accessToken = jwt.sign({id: dbUser.id}, process.env.ACCESS_TOKEN_SECRET)
     res.status(200).send({auth:true, accessToken, user})
 
   }catch(e){  
@@ -185,33 +185,6 @@ router.get('/todos/:username', getUserInfo ,async (req, res)=>{
   }
 })
 
-// router.get('/users/unique', async (req,res)=>{
-//   let allFields = sequelize.models.user.rawAttributes
-//   let uniqueFields = []
-//   let uniqueFieldsObj = {}
-//   for(let i of Object.keys(allFields)){
-//     if(allFields[i].unique) {
-//       uniqueFields.push(i)
-//       uniqueFieldsObj[i] = []
-//     }
-//   }
-//   if(uniqueFields.length==0) return res.status(200).send('no unique values')
-//   try{
-//     let queryResult = await User.findAll({attributes: uniqueFields})
-//     if(!queryResult) return res.status(200).send('no unique values')
-//     queryResult.map(data=> data.dataValues).forEach(user=>{
-//       uniqueFields.forEach(field=>{
-//         uniqueFieldsObj[field].push(user[field])
-//       })
-//     })
-
-//     res.json(uniqueFieldsObj)
-//   }catch(e){
-//     console.error(e)
-//     res.sendStatus(500)
-//   }
-// })
-
 router.delete('/users/:username', getUserInfo, async (req, res)=>{
   let {user, authenticatedUser} = req
   
@@ -238,10 +211,11 @@ router.put('/users/:username', getUserInfo,async (req, res)=>{
     newUpdatedUser = newUpdatedUser.dataValues
     let newAccessToken = req.get('token')
 
-    if(user.username != newUpdatedUser.username)
-      newAccessToken = jwt.sign({id: newUpdatedUser.id, username:newUpdatedUser.username}, process.env.ACCESS_TOKEN_SECRET)
+    // if(user.username != newUpdatedUser.username)
+      // newAccessToken = jwt.sign({id: newUpdatedUser.id}, process.env.ACCESS_TOKEN_SECRET)
+      // newAccessToken = jwt.sign({id: newUpdatedUser.id, username:newUpdatedUser.username}, process.env.ACCESS_TOKEN_SECRET)
 
-    res.json( {user:cleanObject(newUpdatedUser, DESIRED_USER_FIELDS),accessToken:newAccessToken})
+    res.json( cleanObject(newUpdatedUser, DESIRED_USER_FIELDS))
     
   }catch(e){
     console.error(e)
@@ -254,18 +228,15 @@ router.put('/users/:username', getUserInfo,async (req, res)=>{
 router.put('/todos/:username/group', getUserInfo, async (req, res)=>{
   let data = req.body
   let { authenticatedUser, user } = req
-
-  if(!data) return res.sendStatus(400)
-
   try{
+    if(!data) return res.sendStatus(400)
     if (user.username!=authenticatedUser.username) return res.sendStatus(403)
     
-    for(let todo of data){
+    for(let todo of data)
       await Todo.update(todo, {where:{id:todo.id}})
-    }
     const updatedTodos = await Todo.findAll({ where:{ id: data.map(d => d.id) }})
     res.json(updatedTodos.map(obj=>cleanObject(obj,DESIRED_TODO_FIELDS)))
-    
+
   }catch(e){
     console.error(e)
     if(/admin user/.test(e.message))
@@ -279,10 +250,8 @@ router.delete('/todos/:username/group', getUserInfo, async (req, res)=>{
   let data = req.body
   try{
     if(user.username!== authenticatedUser.username) return res.sendStatus(403)
-
-    for(let todo of data){
+    for(let todo of data)
       await Todo.destroy(todo, {where:{id:todo.id}})
-    }
 
   }catch(e){
     console.error(e)

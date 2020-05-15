@@ -29,7 +29,8 @@
       .password-area
         a.change-password-link(@click="changePassword") change password
         ChangePassword(:showPassword="display" @update:showPassword="updatedPassword($event)")
-      Button(type="error" icon="md-trash" size="large" @click="deleteCurrentAccount()") Delete Account
+      .space
+      Button.delete-account(type="error" icon="md-trash" size="large" @click="deleteCurrentAccount()") Delete Account
   ErrorPage(v-else :status="status" :statusMessage="statusMessage")
       
 </template>
@@ -71,7 +72,7 @@ export default class Profile extends Vue {
   async deleteCurrentAccount(){
     let username = this.$route.params.username
     try{
-        let response = await this.AxiosDeleteRequest(config.server.USERS_URL,{username})
+        let response = await this.axiosDeleteRequest(config.server.USERS_URL,{username})
         this.$Message.success({  content: `user deleted successfully`, duration: 2 })
         this.$router.push({name:'Logout'})
 
@@ -99,13 +100,13 @@ export default class Profile extends Vue {
     try{
       let response = await this.axiosPutRequest(config.server.PROFILE_URL,{username}, this.fieldsToBeUpdated, 'saved successfully')
       if(response){
-        vxm.user.setActiveUser(response.data.user)
-        this.user = {...this.user, ...response.data.user}
+        vxm.user.setActiveUser(response.data)
+        this.user = {...this.user, ...response.data}
         if(usernameChanged){
-          localStorage.setItem('username', response.data.user.username)
+          localStorage.setItem('username', response.data.username)
           localStorage.setItem('token', response.data.accessToken)
           vxm.user.setToken(response.data.accessToken)
-          this.$router.push({name:'Profile', params:{username:response.data.user.username}})
+          this.$router.push({name:'Profile', params:{username:response.data.username}})
         }
         this.edit = false
       }
@@ -151,6 +152,8 @@ export default class Profile extends Vue {
   border-radius: 10px
   margin: auto
   padding: 20px
+  display: flex
+  flex-direction: column
   
 .settings
   display: grid
@@ -175,6 +178,16 @@ export default class Profile extends Vue {
 .mini-header>*
   padding: 2px
 
+.space
+  flex: 1 1 auto
+
+.delete-account
+  background: transparent !important
+  color: #C80000  !important
+  border: 1px solid #C80000  !important
+  &:hover
+    background: #C80000  !important
+    color: white !important
 
 .change-password-link
   grid-column: 1 / span 2

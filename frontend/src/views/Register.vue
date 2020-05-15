@@ -150,15 +150,14 @@ export default class Register extends Vue{
 .back
   display: flex
   width: 300px
-
-.ivu-btn
-  background: transparent
-  border: 1px solid transparent
-  font-size:12px
-  margin: 5px
-  &:hover
-    border: 1px solid #007EA7
-    color: #007EA7
-  
+  .ivu-btn
+    background: transparent
+    border: 1px solid transparent
+    font-size:12px
+    margin: 5px
+    &:hover
+      border: 1px solid #007EA7
+      color: #007EA7
+    
 
 </style>

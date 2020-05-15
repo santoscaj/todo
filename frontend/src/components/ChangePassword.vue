@@ -10,7 +10,8 @@
                 p Confirm Password
                 Input(type="password" password)
             .button-area
-                Button(icon="md-checkmark-circle-outline" @click="savePassword" type="success" size="small" pre) Save changes
+                Button(icon="md-checkmark-circle-outline" @click="savePassword"  size="small" pre) Save new password
+                Button(icon="md-checkmark-circle-outline" @click="savePassword" type="success" size="small" pre) Save new password
 </template>
 
 

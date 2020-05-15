@@ -44,7 +44,7 @@ export default class Users extends Vue{
   async deleteUser(row){
     let username = row.username
     try{
-        let response = await this.AxiosDeleteRequest(config.server.USERS_URL, {username})
+        let response = await this.axiosDeleteRequest(config.server.USERS_URL, {username})
         this.reloadPage()
         console.dir(response)
         this.$Message.success({  content: `user deleted successfully`, duration: 2 })
@@ -66,9 +66,8 @@ export default class Users extends Vue{
   }
 
   async updateUser(user, username){
-    console.log('entering')
     let response = await this.axiosPutRequest(config.server.PROFILE_URL, {username}, user)
-    let updatedUser = response.data.user
+    let updatedUser = response.data
     let index = this.users.findIndex(u=>u.id == updatedUser.id)
     this.users.splice(index, 1, updatedUser)
   }

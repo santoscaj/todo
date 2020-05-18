@@ -9,16 +9,19 @@ const jwt = require('jsonwebtoken')
 const cleanObject = require('./utils/cleanData')
 let crypto = require('crypto')
 const activeUsersTokens = require('./utils/activeUsersTokens')
+const {sendUserPasswordEmail} = require('./utils/emailSender')
 
 const DESIRED_USER_FIELDS = ['id','username', 'email','is_admin', 'firstName','lastName', 'image_link', 'account_is_active']
 const DESIRED_TODO_FIELDS = ['id', 'title','content']
 const DESIRED_FIELDS_ALL = [...DESIRED_USER_FIELDS,{todos:[...DESIRED_TODO_FIELDS]}]
-const NON_LOGIN_URLS =  ['/login', '/register', '/users/checkuser/', '/users/checkemail/']
+const NON_LOGIN_URLS =  ['/login', '/register', '/users/checkuser/', '/users/checkemail/', '/users/reset_password/']
+const SALT = Number(process.env.SALT)
 
 // DEFINING FUNCTIONS ////////////////////////////
 function generateRandomPassword(numchars){
     let bytes = numchars / 2
     let password = crypto.randomBytes(bytes).toString('hex')
+    return password
 }
 
 async function authenticator(req, res, next){
@@ -68,7 +71,7 @@ router.use(authenticator)
 router.post('/register-admin',async (req, res)=>{
   let newUser = req.body
   try{
-      let hashedPassword = await (bcrypt.hashSync(newUser.password, 5))
+      let hashedPassword = await (bcrypt.hashSync(newUser.password, SALT))
       newUser.password = hashedPassword
       newUser.is_admin = true
       let queryResult = await User.create(newUser)
@@ -89,7 +92,7 @@ router.post('/register-admin',async (req, res)=>{
 router.post('/register',async (req, res)=>{
   let newUser = req.body
   try{
-      let hashedPassword = await (bcrypt.hashSync(newUser.password, 5))
+      let hashedPassword = await (bcrypt.hashSync(newUser.password, SALT))
       newUser.password = hashedPassword
       let queryResult = await User.create(newUser)
       let user = queryResult ? queryResult.dataValues : null
@@ -107,6 +110,33 @@ router.post('/register',async (req, res)=>{
       return res.sendStatus(500)
   }
 })
+
+
+router.post('/users/:username/change_password', getUserInfo, async (req, res)=>{
+  let user = req.user
+  let { oldPassword, newPassword} = req.body
+
+  if(!oldPassword|| !newPassword)  return res.sendStatus(400)
+  if(!bcrypt.compareSync(oldPassword,user.password)) return res.status(401).send('wrong password')
+  let newPassHash = bcrypt.hashSync(newPassword, SALT)
+  await User.update({password: newPassHash},{where:{id:user.id}})
+  res.sendStatus(200)
+})
+
+router.post('/users/reset_password/:email', async (req, res)=>{
+  let email = req.params.email
+  if(!email) return res.sendStatus(400)
+
+  let queryResults = await User.findOne({where:{email}})
+  if(!queryResults) return res.sendStatus(404)
+
+  let newPassword = generateRandomPassword(8)
+
+  sendUserPasswordEmail(queryResults.dataValues, newPassword)
+  console.log('email sent')
+
+})
+
 
 router.post('/login', async (req, res)=>{
   let userData = req.body
@@ -194,7 +224,7 @@ router.delete('/users/:username', getUserInfo, async (req, res)=>{
     
   }catch(e){
     console.error(e)
-    if(/Cannot delete.*admin user/.test(e.message))
+    if(/admin user/.test(e.message))
       return res.status(400).send(e.message)
     return res.sendStatus(500)
   }
@@ -209,11 +239,7 @@ router.put('/users/:username', getUserInfo,async (req, res)=>{
     await User.update(data, {where:{username:user.username}})
     let newUpdatedUser = await User.findOne({where:{id:user.id}})
     newUpdatedUser = newUpdatedUser.dataValues
-    let newAccessToken = req.get('token')
-
-    // if(user.username != newUpdatedUser.username)
-      // newAccessToken = jwt.sign({id: newUpdatedUser.id}, process.env.ACCESS_TOKEN_SECRET)
-      // newAccessToken = jwt.sign({id: newUpdatedUser.id, username:newUpdatedUser.username}, process.env.ACCESS_TOKEN_SECRET)
+    // let newAccessToken = req.get('token')
 
     res.json( cleanObject(newUpdatedUser, DESIRED_USER_FIELDS))
     

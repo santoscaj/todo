@@ -7,6 +7,8 @@ interface Server{
     USERS_URL: string;
     PROFILE_URL: string;
     TODOS_BULK_URL: string;
+    CHANGE_PASSWORD: string;
+    RESET_PASSWORD: string;
     TODOS_URL: string;
     TOKENS_URL: string;
     GET_ACTIVE_USER: string;
@@ -39,6 +41,8 @@ const server :Server ={
     GET_ACTIVE_USER: BASE_SERVER_URL+"/activeuser",
     USERS_URL: BASE_SERVER_URL+"/users/",
     PROFILE_URL: BASE_SERVER_URL+"/users/:username",
+    CHANGE_PASSWORD: BASE_SERVER_URL+"/users/:username/change_password",
+    RESET_PASSWORD: BASE_SERVER_URL+"/users/reset_password/:email",
     // UNIQUE_FIELDS: BASE_SERVER_URL+"/users/unique",
     CHECK_USER: BASE_SERVER_URL+"/users/checkuser/:username",
     CHECK_EMAIL: BASE_SERVER_URL+"/users/checkemail/:email",

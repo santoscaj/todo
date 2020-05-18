@@ -58,10 +58,12 @@ export default class Register extends Vue{
   myRules = {
     username: [
       {required:true, message:"username cannot be empty", trigger: 'blur'},
+      {validator: validateUnique(this.uniqueItems.username, 'username'), trigger: 'blur'},
     ],
     email: [
       {required:true, message:"Email cannot be empty", trigger: 'blur'},
       {type:'email', message:"Incorrect email format", trigger: 'blur'},
+      {validator: validateUnique(this.uniqueItems.email, 'email'), trigger: 'blur'}
     ],
     password: [
       { required:true, validator: validatePass(this), trigger: 'blur' }
@@ -69,16 +71,6 @@ export default class Register extends Vue{
     passwordCheck: [
       {validator: validatePassCheck(this), trigger: 'blur' }
     ],
-  }
-
-  addValueToRuleset(field, value){
-    this.uniqueItems[field].push(value)
-    let ruleset = this.myRules[field]
-    let index = ruleset.findIndex(validation=>validation.ref == 'uniqueValidator')
-    if(index<0)
-      this.myRules[field].push({validator: validateUnique(this.uniqueItems[field], field), trigger: 'blur', ref:'uniqueValidator'})
-    else
-      this.myRules[field].splice(index, 1, {validator: validateUnique(this.uniqueItems[field], field), trigger: 'blur', ref:'uniqueValidator'})
   }
 
   checkUniqueFieldsDebounce(field){
@@ -93,7 +85,7 @@ export default class Register extends Vue{
             config[field] = valueToValidate
             let response = await this.axiosGetRequest(this.urls[field], config)
             if(response.data.result)
-              this.addValueToRuleset(field,valueToValidate)
+              this.uniqueItems[field].push(valueToValidate)
             this.validatedItems[field].push(valueToValidate)
           }catch(e){
             console.error(e)

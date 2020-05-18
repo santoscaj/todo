@@ -5,13 +5,14 @@
       Layout
         Sider(collapsible :collapsed-width="78" v-model="isCollapsed")
           transition-group(name="slide-right")
-            router-link.side-link(:to="{name: 'Todos', params: {username: activeUser.username }}" v-if="login" key="todos") 
+            router-link.side-link(:to="{name: 'Todos', params: {username: activeUser.username }}" v-if="login" key="todos" :disabled="!activeUser.account_is_active") 
               Icon(type="md-clipboard") 
               span(v-if="!isCollapsed") Todos
-            router-link.side-link(:to="{name: 'Users'}" :disabled="!activeUser.is_admin" v-if="login" key="management") 
+            router-link.side-link(:to="{name: 'Users'}" :disabled="!activeUser.is_admin || !activeUser.account_is_active" v-if="login" key="management") 
               Icon(type="md-people") 
               span(v-if="!isCollapsed") Management
-            router-link.side-link(:to="{name: 'Profile', params: {username: activeUser.username }}" v-if="login" key="profile") 
+            router-link.side-link(
+              :to="{name: 'Profile', params: {username: activeUser.username }}" v-if="login" key="profile" :disabled="!activeUser.account_is_active") 
               Icon(type="md-person") 
               span(v-if="!isCollapsed") Profile
         Content
@@ -44,6 +45,9 @@ export default class App extends Vue {
     return myRoutes.map(r=>r.path.replace(/:\w*/,'santoscaj'))
   }
   
+  get accountIsActive(){
+    return vxm.user.activeUser.account_is_active
+  }
 
   async beforeCreate(){
     let token = localStorage.getItem('token')

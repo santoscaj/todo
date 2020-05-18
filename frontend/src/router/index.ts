@@ -7,6 +7,8 @@ import Register from '../views/Register.vue';
 import Users from '../views/Users.vue';
 import Profile from '../views/Profile.vue';
 import PageNotFound from '../views/PageNotFound.vue';
+import AccountVerification from '../views/AccountVerification.vue';
+import ForgotPassword from '../views/ForgotPassword.vue';
 import Logout from '../views/Logout.vue';
 // import myVue from '@/main'
 import {vxm } from '@/store'
@@ -77,6 +79,14 @@ const routes: RouteConfig[] = [
     }
   },
   {
+    path: '/forgot_password',
+    name: 'ForgotPassword',
+    component: ForgotPassword,// () => import('../views/Todos.vue'),
+    meta:{
+      onlyGuests: true
+    }
+  },
+  {
     path: '/logout',
     name: 'Logout',
     beforeEnter: (to, from, next)=>{
@@ -84,6 +94,14 @@ const routes: RouteConfig[] = [
       vxm.user.logout()
       next({name:'Login'})
       // myVue.$Message.success('logout successful')
+    }
+  },
+  {
+    path: '/account_verification',
+    name: 'AccountVerification',
+    component: AccountVerification,
+    meta:{
+      requiresAuth: true,
     }
   },
   {
@@ -107,10 +125,17 @@ router.afterEach((to, from)=>{
 router.beforeEach((to, from, next)=>{
   let username = localStorage.getItem('username') || ((vxm.user.activeUser) ? vxm.user.activeUser.username : '')
   let userIsLoggedIn = (username) ? (localStorage.getItem('token') || vxm.user.userIsLoggedIn) : false
-
+  let accountIsActive = vxm.user.activeUser.account_is_active
   if(to.matched.some(page=> page.meta.requiresAuth)){
-    if(userIsLoggedIn)
-      next()
+    if(userIsLoggedIn){
+      // if(accountIsActive)
+        next()
+      // else
+      //   if(from.name=='AccountVerification')
+      //     next(false)
+      //   else
+      //     next({name: 'AccountVerification'})
+    }
     else{
       if(from.name == 'Login')
         next(false)

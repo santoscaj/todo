@@ -44,11 +44,12 @@ export default class Users extends Vue{
   async deleteUser(row){
     let username = row.username
     try{
-        let response = await this.axiosDeleteRequest(config.server.USERS_URL, {username})
+        let response = await this.axiosDeleteRequest(config.server.PROFILE_URL, {username})
         this.reloadPage()
         console.dir(response)
         this.$Message.success({  content: `user deleted successfully`, duration: 2 })
     }catch(err){
+        console.error(err)
         let errorMessage =  ( err.response && err.response.data ) ? err.response.data : err.message
         this.$Message.error({  content: `${errorMessage}`, duration: 3 })
     }

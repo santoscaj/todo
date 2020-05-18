@@ -75,11 +75,26 @@ export class AxiosDeleteRequest extends Vue{
     async axiosDeleteRequest(url, params, data ){
         url = getRoute(url, params)
         let response = null
-        console.log(data)
         try{
             response = await axios.delete(url, data)
         }catch(err){
-            console.dir(err)
+            throw err
+        }
+        return response
+    }
+}
+
+
+@Component
+export class AxiosPostRequest extends Vue{
+    async axiosPostRequest(url, params, data ){
+        url = getRoute(url, params)
+        let response = null
+        try{
+            console.log(url)
+            response = await axios.post(url, data)
+        }catch(err){
+            throw err
         }
         return response
     }

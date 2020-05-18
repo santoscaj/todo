@@ -10,7 +10,7 @@
             Input(type="password" password v-model="password")
         Button(type="error" @click="submitPassword()")  Submit
         div.register
-          a forgot password
+          router-link(:to="{name:'ForgotPassword'}") forgot password?
           p No account? 
             router-link(:to="{name:'Register'}") Sign Up here
 </template>

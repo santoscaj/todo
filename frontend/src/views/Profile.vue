@@ -14,25 +14,31 @@
           Tooltip( content="Save changes" placement="top" theme="light")
             Button(size="small" v-show="edit" @click="saveUser()" type="success")
               Icon(type="md-checkmark")
-        p.label username
+        .label
+          div username
         Input(:disabled="!edit" v-model="draftUser.username")
-        p.label email
+        .label
+          div email
         Input(:disabled="!edit" v-model="draftUser.email")
-        p.label First Name
+        .label
+          div First Name
         Input(:disabled="!edit"  v-model="draftUser.firstName")
-        p.label Last Name
+        .label
+          div Last Name
         Input(:disabled="!edit" v-model="draftUser.lastName")
-        p.label Admin priviledges
+        .label
+          div Admin priviledges
         Input(:disabled="true" v-model="userIsAdmin")
-        p.label Profile Picture
+        .label
+          div Profile Picture
         Input(:disabled="!edit" v-model="draftUser.image_link")
       .password-area
-        a.change-password-link(@click="changePassword") change password
-        ChangePassword(:showPassword="display" @update:showPassword="updatedPassword($event)")
+        a.change-password-link(@click="changePassword(!display)") change password
+        ChangePassword(:display.sync="display")
       .space
-      Button.delete-account(type="error" icon="md-trash" size="large" @click="deleteCurrentAccount()") Delete Account
+      Button.delete-account(type="error" icon="md-trash" size="large" @click="confirmDeletion()") Delete Account
   ErrorPage(v-else :status="status" :statusMessage="statusMessage")
-      
+  
 </template>
 
 <script>
@@ -69,13 +75,26 @@ export default class Profile extends Vue {
     this.draftUser = {...this.user}
   }
 
+  ok(){
+    console.log('you wanted it you got it')
+  }
+
+  confirmDeletion(){
+    this.$Modal.confirm({
+      title: 'Delete account',
+      content: 'Are you sure you would like to delete the account and all its content?',
+      onOk: this.deleteCurrentAccount,
+      okText: 'OK',
+      cancelText: 'Cancel'
+    })
+  }
+
   async deleteCurrentAccount(){
     let username = this.$route.params.username
     try{
-        let response = await this.axiosDeleteRequest(config.server.USERS_URL,{username})
+        let response = await this.axiosDeleteRequest(config.server.PROFILE_URL,{username})
         this.$Message.success({  content: `user deleted successfully`, duration: 2 })
         this.$router.push({name:'Logout'})
-
     }catch(err){
         let errorMessage =  ( err.response && err.response.data ) ? err.response.data : err.message
         this.$Message.error({  content: `${errorMessage}`, duration: 3 })
@@ -134,14 +153,9 @@ export default class Profile extends Vue {
     this.user = ( response  && response.data) ? response.data : null
   }
 
-  changePassword(){
-    this.display = true
+  changePassword(display){
+    this.display = display
   }
-
-  updatedPassword(x){
-    this.display = false
-  }
-
 }
 </script>
 
@@ -154,6 +168,7 @@ export default class Profile extends Vue {
   padding: 20px
   display: flex
   flex-direction: column
+  transition: all 10s ease
   
 .settings
   display: grid
@@ -180,6 +195,12 @@ export default class Profile extends Vue {
 
 .space
   flex: 1 1 auto
+
+.label
+  padding: 0 10px
+  display: flex
+  align-items: center 
+  justify-content: flex-end
 
 .delete-account
   background: transparent !important

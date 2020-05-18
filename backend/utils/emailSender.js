@@ -53,4 +53,4 @@ sendUserVerificationEmail = function(user, code){
     })
 }
 
-module.exports = {sendPasswordEmail}
+module.exports = {sendUserPasswordEmail}

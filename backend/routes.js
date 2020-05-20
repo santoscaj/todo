@@ -130,7 +130,7 @@ router.post('/users/reset_password/:email', async (req, res)=>{
   let queryResults = await User.findOne({where:{email}})
   if(!queryResults) return res.sendStatus(404)
 
-  let newPassword = generateRandomPassword(8)
+  let newPassword = generateRandomPassword(16)
 
   sendUserPasswordEmail(queryResults.dataValues, newPassword)
   console.log('email sent')

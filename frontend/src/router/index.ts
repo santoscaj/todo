@@ -132,60 +132,59 @@ router.afterEach((to, from)=>{
     from.meta.firstTime = false
 })
 
-function checkRedirect(){
+function checkRedirect(to : any, from: any, user: any){
+  // let redirect = null
+  // let username = localStorage.getItem('username') || ((vxm.user.activeUser) ? vxm.user.activeUser.username : '')
+  // let userIsAdmin = ((vxm.user.activeUser) ? vxm.user.activeUser.is_admin : false)
+  // let userIsLoggedIn = (username) ? (localStorage.getItem('token') || vxm.user.userIsLoggedIn) : false
+  // let accountIsActive = vxm.user.activeUser.account_is_active
+  // let pageRequiresLogin = to.matched.some(page=> page.meta.requiresAuth)
+  // let pageRequiresGuest = to.matched.some(page=> page.meta.onlyGuests)
+  // let pageRequiresAdmin = to.matched.some(page=> page.meta.is_admin)
+  // let pageRequiresActiveAccount = pageRequiresLogin && to.matched.some(page=> page.meta.requiresActiveAccount)
   
+  // // only checking redirects
+  // if(userIsLoggedIn && accountIsActive){
+  //   if(pageRequiresGuest || (pageRequiresAdmin && !userIsAdmin) || (!pageRequiresActiveAccount && accountIsActive))
+  //     redirect = {name:'Todo', params:{username}}
+  // }else if(userIsLoggedIn && !accountIsActive){
+  //   if(pageRequiresLogin)
+  //     redirect = {name:'AccountVerification'}
+  // }else if(!userIsLoggedIn){
+  //   if(pageRequiresLogin)
+  //     redirect = {name:'Login'}
+  // }
+
+  // return redirect
 }
 
 router.beforeEach((to, from, next)=>{
+  next()
+  // if(vxm.user.activeUser.id==""){
+  //   const watch = vxm.user.$subscribe('setActiveUser', ()=>{
+  //     next()
+  //   })
+  //   next(false)
+  //   return
+  // }
 
-  if(vxm.user.activeUser.id==""){
-    const watch = vxm.user.$subscribe('setActiveUser', ()=>{
-      next()
-    })
-    next(false)
-    return
-  }
-
-  let redirect = null
-  let username = localStorage.getItem('username') || ((vxm.user.activeUser) ? vxm.user.activeUser.username : '')
-  let userIsAdmin = ((vxm.user.activeUser) ? vxm.user.activeUser.is_admin : false)
-  let userIsLoggedIn = (username) ? (localStorage.getItem('token') || vxm.user.userIsLoggedIn) : false
-  let accountIsActive = vxm.user.activeUser.account_is_active
-  let pageRequiresLogin = to.matched.some(page=> page.meta.requiresAuth)
-  let pageRequiresGuest = to.matched.some(page=> page.meta.onlyGuests)
-  let pageRequiresAdmin = to.matched.some(page=> page.meta.is_admin)
-  let pageRequiresActiveAccount = pageRequiresLogin && to.matched.some(page=> page.meta.requiresActiveAccount)
-  
-  // only checking redirects
-  if(userIsLoggedIn && accountIsActive){
-    if(pageRequiresGuest || (pageRequiresAdmin && !userIsAdmin) || (!pageRequiresActiveAccount && accountIsActive))
-      redirect = {name:'Todo', params:{username}}
-  }else if(userIsLoggedIn && !accountIsActive){
-    if(pageRequiresLogin)
-      redirect = {name:'AccountVerification'}
-  }else if(!userIsLoggedIn){
-    if(pageRequiresLogin)
-      redirect = {name:'Login'}
-  }
-
-  if(redirect){
-    if(redirect.name == from.name) {
-      next(false)
-    } else if(to.name == redirect.name) {
-      next()
-    } else{
-      next(redirect)
-    }
-  }else{
-    if(to.name == from.name){
-      next(false)
-    }
-    else{
-      next()
-    }
-  }
-
-  return 
+  // let redirect = checkRedirect(to, from, vxm.user.activeUser)
+  // if(redirect){
+  //   if(redirect.name == from.name) {
+  //     next(false)
+  //   } else if(to.name == redirect.name) {
+  //     next()
+  //   } else{
+  //     next(redirect)
+  //   }
+  // }else{
+  //   if(to.name == from.name){
+  //     next(false)
+  //   }
+  //   else{
+  //     next()
+  //   }
+  // }
   
 })
 

@@ -1,5 +1,10 @@
 const nodemailer = require('nodemailer')
+const fs = require('fs')
+const handlebars = require('handlebars')
 require('dotenv').config()
+
+const TEMP_PASS_TEMPLATE = __dirname+'/tempPass.html'
+const EMAIL_VERIFICATION_TEMPLATE = __dirname+'/emailVerification.html'
 
 let serverEmailAccount = process.env.EMAIL_ACCOUNT
 
@@ -11,46 +16,40 @@ let transporter = nodemailer.createTransport({
     }
 })
 
-let mailOptions =
-{
-    from: 'wup',
-    to: 'Remitente',
-    subject: 'Remitente',
-    text: 'Remitente',
+function emailOptions(subject, email){
+    return {
+        from: serverEmailAccount,
+        to: email,
+        subject
+    }
 }
 
-sendUserPasswordEmail = function(user, password){
-    let mailOptions =
-    {
-        from: serverEmailAccount,
-        to: user.email,
-        subject: 'Password Changed',
-        text: `Your password has been changed! Please enter temporary password to access the page.\nNote that this password will expire soon. \ntemporary password: ${password}`,
-    }
-
-    transporter.sendMail(mailOptions, function(error, info){
-        if(!error)
-            return true
+function sendEmail(options){
+    transporter.sendMail(options, (error, info) =>{
+        if(!error) return true
         console.error(error)
-        return false
     })
 }
 
-sendUserVerificationEmail = function(user, code){
-    let mailOptions =
-    {
-        from: serverEmailAccount,
-        to: user.email,
-        subject: 'Verification Code',
-        text: `Please enter temporary verification code to enable your account\nVerification Code: ${code}`,
-    }
-
-    transporter.sendMail(mailOptions, function(error, info){
-        if(!error)
-            return true
-        console.error(error)
-        return false
+function configureEmail(fileToRead, subject, email, variables){
+    let options = emailOptions(subject, email)
+    
+    fs.readFile(TEMP_PASS_TEMPLATE, {encoding:'utf-8'}, (err, data)=>{
+        if(err) console.error(err)
+        let renderer = handlebars.compile(data)
+        let html = renderer(variables)   
+        options.html = html
+        sendEmail(options)
     })
 }
 
-module.exports = {sendUserPasswordEmail}
+
+function sendUserPasswordEmail(user, password){
+    configureEmail(TEMP_PASS_TEMPLATE, 'Temporary Password', user.email, {username: user.username, password})
+}
+
+function sendUserVerificationEmail(user, code){
+    configureEmail(EMAIL_VERIFICATION_TEMPLATE, 'Verification Code', user.email, {username: user.username, code})
+}
+
+module.exports = {sendUserPasswordEmail, sendUserVerificationEmail}

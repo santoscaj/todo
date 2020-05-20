@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temporary Password</title>
+    <link href="https://fonts.googleapis.com/css2?family=Karla&display=swap" rel="stylesheet">
+
+    <style>
+html,
+body {
+    margin: 0 auto !important;
+    padding: 0 !important;
+    height: 100% !important;
+    width: 100% !important;
+    background: #f1f1f1;
+}
+
+
+/* What it does: Stops email clients resizing small text. */
+* {
+    -ms-text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+}
+
+/* What it does: Centers email on Android 4.4 */
+div[style*="margin: 16px 0"] {
+    margin: 0 !important;
+}
+
+/* What it does: Stops Outlook from adding extra spacing to tables. */
+table,
+td {
+    mso-table-lspace: 0pt !important;
+    mso-table-rspace: 0pt !important;
+}
+
+/* What it does: Fixes webkit padding issue. */
+table {
+    border-spacing: 0 !important;
+    border-collapse: collapse !important;
+    table-layout: fixed !important;
+    margin: 0 auto !important;
+}
+
+/* What it does: Uses a better rendering method when resizing images in IE. */
+img {
+    -ms-interpolation-mode:bicubic;
+}
+
+/* What it does: Prevents Windows 10 Mail from underlining links despite inline CSS. Styles for underlined links should be inline. */
+a {
+    text-decoration: none;
+}
+
+/* What it does: A work-around for email clients meddling in triggered links. */
+*[x-apple-data-detectors],  /* iOS */
+.unstyle-auto-detected-links *,
+.aBn {
+    border-bottom: 0 !important;
+    cursor: default !important;
+    color: inherit !important;
+    text-decoration: none !important;
+    font-size: inherit !important;
+    font-family: inherit !important;
+    font-weight: inherit !important;
+    line-height: inherit !important;
+}
+
+/* What it does: Prevents Gmail from displaying a download button on large, non-linked images. */
+.a6S {
+    display: none !important;
+    opacity: 0.01 !important;
+}
+
+/* What it does: Prevents Gmail from changing the text color in conversation threads. */
+.im {
+    color: inherit !important;
+}
+
+/* If the above doesn't work, add a .g-img class to any image in question. */
+img.g-img + div {
+    display: none !important;
+}
+
+/* What it does: Removes right gutter in Gmail iOS app: https://github.com/TedGoas/Cerberus/issues/89  */
+/* Create one of these media queries for each additional viewport size you'd like to fix */
+
+/* iPhone 4, 4S, 5, 5S, 5C, and 5SE */
+@media only screen and (min-device-width: 320px) and (max-device-width: 374px) {
+    u ~ div .email-container {
+        min-width: 320px !important;
+    }
+}
+/* iPhone 6, 6S, 7, 8, and X */
+@media only screen and (min-device-width: 375px) and (max-device-width: 413px) {
+    u ~ div .email-container {
+        min-width: 375px !important;
+    }
+}
+/* iPhone 6+, 7+, and 8+ */
+@media only screen and (min-device-width: 414px) {
+    u ~ div .email-container {
+        min-width: 414px !important;
+    }
+}
+
+html, body, *{
+            font-family: 'Karla', sans-serif;
+            font-size: 16px;
+            color: black;
+        }
+
+        .parent{
+            background: rgba(235, 235, 235);
+            margin: auto;
+            /* width: 700px; */
+            /* height: 600px; */
+            text-align: center;
+            padding: 0 100px 100px 100px;
+        }
+        .son{
+            text-align: left;
+            margin: auto;
+            /* border: 1px solid gray; */
+            /* border-radius: 15px; */
+            padding: 50px;
+            /* width: 500px; */
+            /* height: 400px; */
+            background:white;
+        }
+        .title{
+            padding: 20px;
+            margin: auto
+        }
+        .main-text{
+            font-size: 32px;
+            font-weight: 600;
+            /* line-height: 80px;
+            height: 80px; */
+        }
+
+        .password{
+            margin:auto;
+            padding: 1px;
+            width: auto;
+            display: block;
+            text-align: center;
+        }
+        .password-text{
+            display:inline-block;
+            padding: 3px;
+            font-size: 22px;
+            border: 1px solid lightgray;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="parent">
+        <div class="title">
+            <span class="main-text">Temporary Password</span><br>
+            <span>has been requested</span>
+        </div>
+        <div class="son">
+            <p>Dear {{username}},</p>
+            <p>A new password has been requested</p>
+            <p>Please enter temporary password to access your account.</p>
+            <p>Temporary Password:</p>
+                <div class="password">
+                    <p class="password-text">
+                        {{password}}
+                    </p>
+                </div>
+            <p>This password will expire soon.</p>
+        </div>
+    </div>
+</body>
+</html>

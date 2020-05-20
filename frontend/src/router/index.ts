@@ -12,6 +12,8 @@ import ForgotPassword from '../views/ForgotPassword.vue';
 import Logout from '../views/Logout.vue';
 // import myVue from '@/main'
 import {vxm } from '@/store'
+import config from '@/config'
+import axios from 'axios'
 import { getNamespacedPath } from 'vuex-class-component/dist/module';
 Vue.use(VueRouter);
 
@@ -44,6 +46,7 @@ const routes: RouteConfig[] = [
     component:Users, // () => import('../views/Users.vue'),
     meta:{
       requiresAuth: true,
+      requiresActiveAccount: true,
       is_admin: true,
       pageTitle: 'User Management'
     }
@@ -54,6 +57,7 @@ const routes: RouteConfig[] = [
     component: Todos,// () => import('../views/Todos.vue'),
     meta:{
       requiresAuth: true,
+      requiresActiveAccount: true,
       pageTitle: 'User to-do lists'
     }
   },
@@ -63,6 +67,7 @@ const routes: RouteConfig[] = [
     component: Profile, // () => import('../views/Profile.vue'),
     meta:{
       requiresAuth: true,
+      requiresActiveAccount: true,
       pageTitle: 'User Settings',
       firstTime: false
     },
@@ -71,7 +76,7 @@ const routes: RouteConfig[] = [
       let username = from.params.username || localStorage.getItem('username')
       if(!username)
         next({name:'Login'})
-      else if(username && from.name=='Register'){
+      else if(username && from.name=='AccountVerification'){
         to.meta.firstTime = true
         next()
       }else 
@@ -102,7 +107,12 @@ const routes: RouteConfig[] = [
     component: AccountVerification,
     meta:{
       requiresAuth: true,
-    }
+    },
+    // beforeEnter(to, from, next){
+    //   console.log(to.fullPath)
+    //   console.log(from.fullPath)
+    //   console.log('about to enter broki')
+    // }
   },
   {
     path: '*',
@@ -122,33 +132,57 @@ router.afterEach((to, from)=>{
     from.meta.firstTime = false
 })
 
+function checkRedirect(){
+  
+}
+
 router.beforeEach((to, from, next)=>{
+
+  if(vxm.user.activeUser.id==""){
+    const watch = vxm.user.$subscribe('setActiveUser', ()=>{
+      next()
+    })
+    next(false)
+    return
+  }
+
+  let redirect = null
   let username = localStorage.getItem('username') || ((vxm.user.activeUser) ? vxm.user.activeUser.username : '')
+  let userIsAdmin = ((vxm.user.activeUser) ? vxm.user.activeUser.is_admin : false)
   let userIsLoggedIn = (username) ? (localStorage.getItem('token') || vxm.user.userIsLoggedIn) : false
   let accountIsActive = vxm.user.activeUser.account_is_active
-  if(to.matched.some(page=> page.meta.requiresAuth)){
-    if(userIsLoggedIn){
-      // if(accountIsActive)
-        next()
-      // else
-      //   if(from.name=='AccountVerification')
-      //     next(false)
-      //   else
-      //     next({name: 'AccountVerification'})
+  let pageRequiresLogin = to.matched.some(page=> page.meta.requiresAuth)
+  let pageRequiresGuest = to.matched.some(page=> page.meta.onlyGuests)
+  let pageRequiresAdmin = to.matched.some(page=> page.meta.is_admin)
+  let pageRequiresActiveAccount = pageRequiresLogin && to.matched.some(page=> page.meta.requiresActiveAccount)
+  
+  // only checking redirects
+  if(userIsLoggedIn && accountIsActive){
+    if(pageRequiresGuest || (pageRequiresAdmin && !userIsAdmin) || (!pageRequiresActiveAccount && accountIsActive))
+      redirect = {name:'Todo', params:{username}}
+  }else if(userIsLoggedIn && !accountIsActive){
+    if(pageRequiresLogin)
+      redirect = {name:'AccountVerification'}
+  }else if(!userIsLoggedIn){
+    if(pageRequiresLogin)
+      redirect = {name:'Login'}
+  }
+
+  if(redirect){
+    if(redirect.name == from.name) {
+      next(false)
+    } else if(to.name == redirect.name) {
+      next()
+    } else{
+      next(redirect)
+    }
+  }else{
+    if(to.name == from.name){
+      next(false)
     }
     else{
-      if(from.name == 'Login')
-        next(false)
-    next({name:'Login'})
-    }
-  }else if(to.matched.some(page=>page.meta.onlyGuests)){
-    if(userIsLoggedIn){
-      next({name:'Todos', params: {username}})
-    }
-    else
       next()
-  }else{
-    next()
+    }
   }
 
   return 

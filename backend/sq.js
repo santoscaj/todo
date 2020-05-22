@@ -6,8 +6,11 @@ const isEmail = require('validator/lib/isEmail')
 
 
 const myLoggingFunction = function(message){
-  if(process.env.LOG_DB==='true')
-    console.log(message)
+  let cyanColor = '\x1b[36m%s\x1b[0m'
+  if(process.env.LOG_DB==='true'){
+    console.log('--------------------------------------------------------')
+    console.log(cyanColor,message)
+  }
 }
 
 const sequelize = new Sequelize('todos_db','postgres','admin',{
@@ -21,8 +24,11 @@ async function addDefaultUsers(){
   for(let user of users){
     try {
       let usr = await User.findOrCreate({where:{...(user.userData) }})
-      for (let todo of user.todoList){
-        await Todo.findOrCreate({where:{...todo, user_id: usr[0].dataValues.id}})
+      for (let todo of user.todoLists){
+        let list = await TodoList.findOrCreate({where:{name: todo.name, user_id: usr[0].dataValues.id}})
+        for(let todoitem of todo.todoItems){
+          await TodoItem.findOrCreate({where:{...todoitem, todolist_id: list[0].dataValues.id}})
+        }
       }
     }catch(err){
       if(err.message=='Validation error' && !printedAlready){
@@ -33,13 +39,6 @@ async function addDefaultUsers(){
     }
   }
 }
-
-// class MyError extends Error {
-//   constructor(message) {
-//     super(message); // (1)
-//     // this.name = "ValidationError"; // (2)
-//   }
-// }
 
 sequelize
   .authenticate()
@@ -129,17 +128,14 @@ const User = sequelize.define('user', {
   }
 });
 
-const Todo = sequelize.define('todos', {
-  title: {
-    type: Sequelize.STRING,
-    allowNull: false
-  },
-  content: {
+const TodoList = sequelize.define('todolist', {
+  name: {
     type: Sequelize.STRING,
     allowNull: false
   },
   user_id: {
     type: Sequelize.INTEGER,
+    allowNull: false, 
     references:{
       model: User,
       key: 'id'
@@ -149,14 +145,63 @@ const Todo = sequelize.define('todos', {
   // options
 });
 
-User.hasMany(Todo, {foreignKey: 'user_id', constraints: false})
-Todo.hasOne(User, {foreignKey: 'id', constraints: false})
+User.hasMany(TodoList, {foreignKey: 'user_id', constraints: false})
+TodoList.belongsTo(User, {foreignKey: 'id', constraints: false})
+
+const TodoItem = sequelize.define('todoitem', {
+  content: {
+    type: Sequelize.STRING,
+    allowNull: false
+  },
+  completion: Sequelize.BOOLEAN,
+  todolist_id: {
+    type: Sequelize.INTEGER,
+    allowNull: false, 
+    references:{
+      model: TodoList,
+      key: 'id'
+    }
+  },
+}, {
+  // options
+});
+
+TodoList.hasMany(TodoItem, {foreignKey: 'todolist_id', constraints: false})
+TodoItem.belongsTo(TodoList, {foreignKey: 'id', constraints: false})
+
+const TodoListUser = sequelize.define('todolist_user', {
+  user_id: {
+    type:Sequelize.INTEGER,
+    allowNull: false, 
+    references:{
+      model: User, 
+      key: 'id'
+    }
+  },
+  todolist_id: {
+    type: Sequelize.INTEGER,
+    allowNull: false, 
+    references:{
+      model: TodoList, 
+      key: 'id'
+    }
+  }
+}, {
+  // options
+});
+
+TodoList.belongsToMany(User, {through: TodoListUser, as: 'users', foreignKey: 'todolist_id' })
+User.belongsToMany(TodoList, {through: TodoListUser, as: 'publicTodoLists', foreignKey: 'user_id'})
 
 sequelize.sync()
 
-module.exports = { User, Todo, Sequelize, sequelize }
+module.exports = { User, TodoList, TodoItem, TodoListUser, Sequelize, sequelize }
 
 addDefaultUsers()
+
+
+
+
 
 // testing functions - can be removed
 // ;((async function(){

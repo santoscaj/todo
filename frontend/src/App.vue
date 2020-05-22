@@ -51,23 +51,18 @@ export default class App extends Vue {
 
   async beforeCreate(){
     let token = localStorage.getItem('token')
-    if(token){
-      vxm.user.setToken(token)
-      try{
-        let response = await axios.get(config.server.GET_ACTIVE_USER)
-        vxm.user.setActiveUser(response.data)
-      }catch(e){
-        console.error(e)
-        this.$router.push('/logout')
-      }
+    try{
+      vxm.user.loadUser(token)
+    }catch(e){
+      console.error(e)
+      this.$router.push('/logout')
     }
+    vxm.user.checkPageLoader()
   }
 }
 </script>
 
 <style lang="sass">
-
-
 html,body
   width: 100% 
   height: 100%
@@ -76,9 +71,8 @@ body
   overflow-x: hidden
 
 #app 
-  font-family: Avenir, Helvetica, Arial, sans-serif
-  -webkit-font-smoothing: antialiased
-  -moz-osx-font-smoothing: grayscale
+  font-family: Avenir, Helvetica, Arial, sans-serifx
+  font-family: 'Open Sans', sans-serifs
   text-align: center
   color: #2c3e50
   box-sizing: border-box
@@ -114,9 +108,9 @@ body
   width: 100%
   height: 30px
   line-height: 30px
-  font-size: 9.5px
+  font-size: 13px
   color: #eef0f2
-  font-family: 'Sarpanch', sans-serif
+  // font-family: 'Sarpanch', sans-serif
   text-align: left
   transition: all .8s ease
   &:hover

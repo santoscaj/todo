@@ -1,28 +1,29 @@
 <template lang="pug">
   div
     div(v-if="!errorOccurred")
-      Input.search(v-model="search" icon="md-search" placeholder="Filter to-dos")
-      .cards-area
-        .grid-block(v-for="todo in filteredTodos" :key="todo.id") 
-          .title(slot="title") 
-            input.title-input(v-model="todo.title")
-            Button.close-btn(type="error" size="small" @click="removeTodo(todo.id)")
-              Icon(type="md-close")
-          Input(type="textarea" :rows="10" v-model="todo.content" style="width: 200px" ) 
-        .grid-block(v-for="draft in filteredDrafts" :key="draft.id") 
-          .title(slot="title") 
-            input.title-input(v-model="draft.title")
-            Button.close-btn(type="error" size="small" @click="removeDraft(draft.id)")
-              Icon(type="md-close")
-          Input(type="textarea" :rows="10" v-model="draft.content" style="width: 200px" ) 
-        .add-btn-area
-          Button.add-btn(@click="addDraft()")
-            Icon(type="md-add")
-      .apply-discard-changes
-        Button(type="error" @click="discardChanges()") Discard Changes
-          Icon(type="ios-close-circle-outline")
-        Button(type="success" @click="applyChanges()") Apply Changes
-          Icon(type="md-checkmark")
+      //- Input.search(v-model="search" icon="md-search" placeholder="Filter to-dos")
+      //- .cards-area
+      //-   .grid-block(v-for="todo in filteredTodos" :key="todo.id") 
+      //-     .title(slot="title") 
+      //-       input.title-input(v-model="todo.title")
+      //-       Button.close-btn(type="error" size="small" @click="removeTodo(todo.id)")
+      //-         Icon(type="md-close")
+      //-     Input(type="textarea" :rows="10" v-model="todo.content" style="width: 200px" ) 
+      //-   .grid-block(v-for="draft in filteredDrafts" :key="draft.id") 
+      //-     .title(slot="title") 
+      //-       input.title-input(v-model="draft.title")
+      //-       Button.close-btn(type="error" size="small" @click="removeDraft(draft.id)")
+      //-         Icon(type="md-close")
+      //-     Input(type="textarea" :rows="10" v-model="draft.content" style="width: 200px" ) 
+      //-   .add-btn-area
+      //-     Button.add-btn(@click="addDraft()")
+      //-       Icon(type="md-add")
+      //- .apply-discard-changes
+      //-   Button(type="error" @click="discardChanges()") Discard Changes
+      //-     Icon(type="ios-close-circle-outline")
+      //-   Button(type="success" @click="applyChanges()") Apply Changes
+      //-     Icon(type="md-checkmark")
+      TodoList
     ErrorPage(v-else :status="status" :statusMessage="statusMessage")
 
 </template>
@@ -33,10 +34,12 @@ import config from '@/config'
 import {vxm} from '@/store'
 import axios from 'axios'
 import ErrorPage from '@/components/ErrorPage.vue'
+import TodoList from '@/components/TodoList.vue'
 import {AxiosGetRequestStatus, AxiosPutRequest, AxiosDeleteRequest} from '@/mixins/axiosRequest'
 import {v4} from 'uuid'
 
-@Component({components:{ErrorPage},  mixins: [AxiosGetRequestStatus, AxiosPutRequest, AxiosDeleteRequest]} )
+
+@Component({components:{ErrorPage, TodoList},  mixins: [AxiosGetRequestStatus, AxiosPutRequest, AxiosDeleteRequest]} )
 export default class Todos extends Vue {
   user = null
   search=''

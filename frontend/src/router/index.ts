@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import VueRouter, { RouteConfig } from 'vue-router';
+import VueRouter, { RouteConfig, Route } from 'vue-router';
 import Home from '../views/Home.vue';
 import Todos from '../views/Todos.vue';
 import Login from '../views/Login.vue';
@@ -9,12 +9,9 @@ import Profile from '../views/Profile.vue';
 import PageNotFound from '../views/PageNotFound.vue';
 import AccountVerification from '../views/AccountVerification.vue';
 import ForgotPassword from '../views/ForgotPassword.vue';
-import Logout from '../views/Logout.vue';
 // import myVue from '@/main'
-import {vxm } from '@/store'
-import config from '@/config'
-import axios from 'axios'
-import { getNamespacedPath } from 'vuex-class-component/dist/module';
+import {vxm, User} from '@/store'
+// import { getNamespacedPath } from 'vuex-class-component/dist/module';
 Vue.use(VueRouter);
 
 const routes: RouteConfig[] = [
@@ -108,11 +105,6 @@ const routes: RouteConfig[] = [
     meta:{
       requiresAuth: true,
     },
-    // beforeEnter(to, from, next){
-    //   console.log(to.fullPath)
-    //   console.log(from.fullPath)
-    //   console.log('about to enter broki')
-    // }
   },
   {
     path: '*',
@@ -132,60 +124,74 @@ router.afterEach((to, from)=>{
     from.meta.firstTime = false
 })
 
-function checkRedirect(to : any, from: any, user: any){
-  // let redirect = null
-  // let username = localStorage.getItem('username') || ((vxm.user.activeUser) ? vxm.user.activeUser.username : '')
-  // let userIsAdmin = ((vxm.user.activeUser) ? vxm.user.activeUser.is_admin : false)
-  // let userIsLoggedIn = (username) ? (localStorage.getItem('token') || vxm.user.userIsLoggedIn) : false
-  // let accountIsActive = vxm.user.activeUser.account_is_active
-  // let pageRequiresLogin = to.matched.some(page=> page.meta.requiresAuth)
-  // let pageRequiresGuest = to.matched.some(page=> page.meta.onlyGuests)
-  // let pageRequiresAdmin = to.matched.some(page=> page.meta.is_admin)
-  // let pageRequiresActiveAccount = pageRequiresLogin && to.matched.some(page=> page.meta.requiresActiveAccount)
-  
-  // // only checking redirects
-  // if(userIsLoggedIn && accountIsActive){
-  //   if(pageRequiresGuest || (pageRequiresAdmin && !userIsAdmin) || (!pageRequiresActiveAccount && accountIsActive))
-  //     redirect = {name:'Todo', params:{username}}
-  // }else if(userIsLoggedIn && !accountIsActive){
-  //   if(pageRequiresLogin)
-  //     redirect = {name:'AccountVerification'}
-  // }else if(!userIsLoggedIn){
-  //   if(pageRequiresLogin)
-  //     redirect = {name:'Login'}
-  // }
+function checkRedirect(to : Route, from: Route, user: User | null){
+  let redirect = null
 
-  // return redirect
+  let pageRequiresLogin = to.matched.some(page=> page.meta.requiresAuth)
+  let pageRequiresGuest = to.matched.some(page=> page.meta.onlyGuests)
+  let pageRequiresAdmin = to.matched.some(page=> page.meta.is_admin)
+  let pageRequiresActiveAccount = pageRequiresLogin && to.matched.some(page=> page.meta.requiresActiveAccount)
+  let username = user? user.username : ''
+  let userIsAdmin = user? user.is_admin : ''
+  let accountIsActive = user ? user.account_is_active : ''
+
+  if(user && accountIsActive){
+    if(pageRequiresGuest || (pageRequiresAdmin && !userIsAdmin) || (!pageRequiresActiveAccount && accountIsActive))
+      redirect = {name:'Todos', params:{username}}
+  }else if(user && !accountIsActive)
+      if(pageRequiresGuest || pageRequiresLogin)
+        redirect = {name:'AccountVerification'}
+  else if(!user && pageRequiresLogin)
+      redirect = {name:'Login'}
+
+  return redirect
+}
+
+interface Redirect{
+  name: string;
+  params?: {username:string}
+}
+
+function routerGo(redirect:Redirect | null, to:Route, from:Route, next: Function){
+  
+  if(redirect){
+    if(redirect.name == from.name) {
+      next(false)
+    } else if(to.name == redirect.name) {
+      next()
+    } else{
+      next(redirect)
+    }
+  }else{
+    if(to.name == from.name){
+      next(false)
+    }
+    else{
+      next()
+    }
+  }
+}
+
+function goToNextPage(user:User | null, to:Route, from:Route, next:Function){
+  let redirect = checkRedirect(to, from, user)
+  routerGo(redirect, to, from, next)
 }
 
 router.beforeEach((to, from, next)=>{
   next()
-  // if(vxm.user.activeUser.id==""){
-  //   const watch = vxm.user.$subscribe('setActiveUser', ()=>{
-  //     next()
-  //   })
-  //   next(false)
-  //   return
-  // }
 
-  // let redirect = checkRedirect(to, from, vxm.user.activeUser)
-  // if(redirect){
-  //   if(redirect.name == from.name) {
-  //     next(false)
-  //   } else if(to.name == redirect.name) {
-  //     next()
-  //   } else{
-  //     next(redirect)
-  //   }
-  // }else{
-  //   if(to.name == from.name){
-  //     next(false)
-  //   }
-  //   else{
-  //     next()
-  //   }
-  // }
-  
+  let activeUser = vxm.user.activeUser.id? vxm.user.activeUser : null
+
+  if( !activeUser && !vxm.user.pageLoaded){
+        const watch = vxm.user.$subscribe('setActiveUser', ()=>{
+        let activeUser = vxm.user.activeUser
+        goToNextPage(activeUser, to, from, next)
+    })
+    next(false)
+    return
+  }else{
+    goToNextPage(activeUser, to, from, next)
+  }
 })
 
 export default router;

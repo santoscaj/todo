@@ -113,5 +113,6 @@ export default class MyHeader extends Vue{
 .header-title
     flex: 1 1 auto
     font-family: 'Sarpanch', sans-serif
+    font-family: 'Open Sans', sans-serif
 
 </style>

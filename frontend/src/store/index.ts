@@ -1,8 +1,9 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
-import { createModule, mutation, extractVuexModule, createProxy } from "vuex-class-component";
+import { createModule, mutation, extractVuexModule, createProxy, action } from "vuex-class-component";
 import emptyUser from '@/utils/emptyUser'
-import { TreeChild } from 'view-design';
+import axios from 'axios'
+import config from '@/config'
 
 Vue.use(Vuex);
 
@@ -34,9 +35,14 @@ export interface User{
 export class MyStore extends VuexModule{
   activeUser : User = emptyUser()
   usertoken :string | null = null
+  pageLoaded = false
 
   get userIsLoggedIn(){
     return Boolean(this.usertoken)
+  }
+
+  @mutation checkPageLoader(){
+    this.pageLoaded = true
   }
 
   @mutation logout(){
@@ -50,6 +56,14 @@ export class MyStore extends VuexModule{
   
   @mutation setActiveUser(user:User){
     this.activeUser = user
+  }
+
+  @action async loadUser(token: string | null){
+    if(token){
+      this.setToken(token)
+      let response = await axios.get(config.server.GET_ACTIVE_USER)
+      this.setActiveUser(response.data)
+    }
   }
 
 }

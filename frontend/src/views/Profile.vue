@@ -76,7 +76,6 @@ export default class Profile extends Vue {
   }
 
   ok(){
-    console.log('you wanted it you got it')
   }
 
   confirmDeletion(){
@@ -113,7 +112,6 @@ export default class Profile extends Vue {
 
   async saveUser(){
     let usernameChanged = this.user.username != this.draftUser.username 
-    console.log(usernameChanged, this.user.username, this.draftUser.username)
     let username = this.$route.params.username
     
     try{

@@ -5,11 +5,13 @@ interface Server{
     LOGIN_URL:string;
     REGISTER_URL:string;
     USERS_URL: string;
+    SHARED_LISTS_URL: string;
+    TODOLIST_URL: string;
     PROFILE_URL: string;
-    TODOS_BULK_URL: string;
+    // TODOS_BULK_URL: string;
     CHANGE_PASSWORD: string;
     RESET_PASSWORD: string;
-    TODOS_URL: string;
+    // TODOS_URL: string;
     TOKENS_URL: string;
     GET_ACTIVE_USER: string;
     // UNIQUE_FIELDS: string;
@@ -35,6 +37,8 @@ let BASE_SERVER_URL:string="http://localhost:3000"
 let BASE_CLIENT_URL:string="http://localhost:8080"
 
 const server :Server ={
+    SHARED_LISTS_URL:  BASE_SERVER_URL+'/todolists/:todolist_id/shared/:email',
+    TODOLIST_URL: BASE_SERVER_URL+'/users/:username/todolists',
     BASE_SERVER_URL : BASE_SERVER_URL,
     LOGIN_URL:BASE_SERVER_URL+"/login",
     REGISTER_URL:BASE_SERVER_URL+"/register",
@@ -46,8 +50,8 @@ const server :Server ={
     // UNIQUE_FIELDS: BASE_SERVER_URL+"/users/unique",
     CHECK_USER: BASE_SERVER_URL+"/users/checkuser/:username",
     CHECK_EMAIL: BASE_SERVER_URL+"/users/checkemail/:email",
-    TODOS_URL: BASE_SERVER_URL+"/todos/:username",
-    TODOS_BULK_URL: BASE_SERVER_URL+"/todos/:username/group",
+    // TODOS_URL: BASE_SERVER_URL+"/todos/:username",
+    // TODOS_BULK_URL: BASE_SERVER_URL+"/todos/:username/group",
     TOKENS_URL: BASE_SERVER_URL+"/usertoken",
 }
 

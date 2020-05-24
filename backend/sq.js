@@ -5,13 +5,27 @@ const { users} = require('./utils/Default')
 const isEmail = require('validator/lib/isEmail')
 
 
+
+
 const myLoggingFunction = function(message){
   let cyanColor = '\x1b[36m%s\x1b[0m'
   if(process.env.LOG_DB==='true'){
-    console.log('--------------------------------------------------------')
     console.log(cyanColor,message)
   }
 }
+
+
+// const myLoggingFunction = function(message){
+//   let cyanColor = '\x1b[36m%s\x1b[0m'
+//   if(process.env.LOG_DB==='true'){
+//     (function myLoop(i) {
+//       setTimeout(function() {
+//         console.log(message); //  your code here                
+//         if (--i) myLoop(i);   //  decrement i and call myLoop again if i > 0
+//       }, 3000)
+//     })(10)
+//   }
+// }
 
 const sequelize = new Sequelize('todos_db','postgres','admin',{
     host: 'localhost',
@@ -25,9 +39,9 @@ async function addDefaultUsers(){
     try {
       let usr = await User.findOrCreate({where:{...(user.userData) }})
       for (let todo of user.todoLists){
-        let list = await TodoList.findOrCreate({where:{name: todo.name, user_id: usr[0].dataValues.id}})
+        let list = await TodoList.findOrCreate({where:{name: todo.name, user_id: usr[0].id}})
         for(let todoitem of todo.todoItems){
-          await TodoItem.findOrCreate({where:{...todoitem, todolist_id: list[0].dataValues.id}})
+          await TodoItem.findOrCreate({where:{...todoitem, todolist_id: list[0].id}})
         }
       }
     }catch(err){
@@ -99,8 +113,8 @@ const User = sequelize.define('user', {
       let where = instance.where
       let queryUsersTobeDestroyed = await this.findAll({where})
       let queryAdminUsers = await this.findAll({where: {is_admin: true}})
-      let adminUsersToBeDestroyed = queryUsersTobeDestroyed.map(u => u.dataValues).filter(u => u.is_admin)
-      let totalAdminUsers = queryAdminUsers.map(u => u.dataValues).filter(u => u.is_admin)
+      let adminUsersToBeDestroyed = queryUsersTobeDestroyed.filter(u => u.is_admin)
+      let totalAdminUsers = queryAdminUsers.filter(u => u.is_admin)
       if(totalAdminUsers.length == adminUsersToBeDestroyed.length){
         if(totalAdminUsers.length==1)
           throw new Error('Cannot delete only admin user')
@@ -120,7 +134,7 @@ const User = sequelize.define('user', {
       let where = instance.attributes
       if(instance.fields.includes('is_admin') && where && !where.is_admin){
         let queryAdminUsers = await this.findAll({where: {is_admin: true}})
-        let totalAdminUsers = queryAdminUsers.map(u => u.dataValues).filter(u => u.is_admin)
+        let totalAdminUsers = queryAdminUsers.filter(u => u.is_admin)
         if(totalAdminUsers.length==1)
           throw new Error('Cannot remove only admin user')
       }
@@ -136,6 +150,7 @@ const TodoList = sequelize.define('todolist', {
   user_id: {
     type: Sequelize.INTEGER,
     allowNull: false, 
+    onDelete: 'CASCADE',
     references:{
       model: User,
       key: 'id'
@@ -157,6 +172,7 @@ const TodoItem = sequelize.define('todoitem', {
   todolist_id: {
     type: Sequelize.INTEGER,
     allowNull: false, 
+    onDelete: 'CASCADE',
     references:{
       model: TodoList,
       key: 'id'
@@ -164,6 +180,7 @@ const TodoItem = sequelize.define('todoitem', {
   },
 }, {
   // options
+  
 });
 
 TodoList.hasMany(TodoItem, {foreignKey: 'todolist_id', constraints: false})
@@ -173,6 +190,7 @@ const TodoListUser = sequelize.define('todolist_user', {
   user_id: {
     type:Sequelize.INTEGER,
     allowNull: false, 
+    onDelete: 'CASCADE',
     references:{
       model: User, 
       key: 'id'
@@ -181,6 +199,7 @@ const TodoListUser = sequelize.define('todolist_user', {
   todolist_id: {
     type: Sequelize.INTEGER,
     allowNull: false, 
+    onDelete: 'CASCADE',
     references:{
       model: TodoList, 
       key: 'id'
@@ -190,15 +209,45 @@ const TodoListUser = sequelize.define('todolist_user', {
   // options
 });
 
-TodoList.belongsToMany(User, {through: TodoListUser, as: 'users', foreignKey: 'todolist_id' })
-User.belongsToMany(TodoList, {through: TodoListUser, as: 'publicTodoLists', foreignKey: 'user_id'})
+TodoList.belongsToMany(User, {through: TodoListUser, as: 'users', foreignKey: 'todolist_id', constraints: false})
+User.belongsToMany(TodoList, {through: TodoListUser, as: 'publicTodoLists', foreignKey: 'user_id', constraints: false})
+TodoList.hasMany(TodoListUser, {foreignKey: 'todolist_id', as: 'shared_users' ,constraints: false})
 
 sequelize.sync()
 
 module.exports = { User, TodoList, TodoItem, TodoListUser, Sequelize, sequelize }
 
-addDefaultUsers()
+// addDefaultUsers()
 
+
+
+
+;(async ()=>{
+    try{
+      const Op = Sequelize.Op
+      // let tocreate = [{todolist_id:2, user_id:2}, {todolist_id:2, user_id:1}]
+      // let tocreate1 = {todolist_id:3, user_id:3}
+      // // let result = await TodoListUser.bulkCreate(tocreate)
+      // let result2 = await TodoListUser.create(tocreate1)
+      // console.log(result2.dataValues)
+
+      // let test = await TodoList.findAll({ include: [{model: User, as: 'users', attributes: ['id'],where:{id:1}}, TodoItem]})
+      // let test = await TodoList.findAll({ where:{user_id:2},include: [{model: User, as: 'users', attributes: ['id'],where:{id:1}}, TodoItem]})
+      // let test = await TodoList.findAll({ where:{[Op.or]:[{user_id:{[Op.eq]: 2}}, {user_id:{[Op.eq]:1}}]},include: [{model: User, as: 'users', attributes: ['id'],where:{id:1}}, TodoItem]})
+      // let listId = 2
+      // let test = await TodoList.findAll({ attributes:["user_id", "shared_users.user_id"],where:{id:listId},include: [{required:false, model: TodoListUser, as: 'shared_users'}]})
+
+      // console.log(test.map(x=>x.dataValues))
+      // console.log(test)
+      // test.forEach(x=>console.log(x.dataValues))
+
+    }catch(e){console.log(e)}
+
+//   let x = await TodoList.findOne({where:{user_id: 3},include: {model:TodoItem, where:{id:6}}})
+//   console.log(x)
+//   // console.log(x.every(item=>item.todolist.user_id==1))
+
+})()
 
 
 

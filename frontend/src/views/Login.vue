@@ -31,6 +31,8 @@ export default class Login extends Vue{
     try{
       let response = await axios.post(config.server.LOGIN_URL, {username : self.username, password :self.password})
       let token = response.data.accessToken
+      
+      console.log(response)
       let username = response.data.user.username
       let activeUser = response.data.user
       

@@ -222,6 +222,7 @@ module.exports = { User, TodoList, TodoItem, TodoListUser, Sequelize, sequelize 
 
 
 
+// testing function
 ;(async ()=>{
     try{
       const Op = Sequelize.Op
@@ -248,42 +249,4 @@ module.exports = { User, TodoList, TodoItem, TodoListUser, Sequelize, sequelize 
 //   // console.log(x.every(item=>item.todolist.user_id==1))
 
 })()
-
-
-
-
-// testing functions - can be removed
-// ;((async function(){
-//   try{ 
-//     let newUser =  await User.create({
-//       id: "99",
-//       username: "testo",
-//       password: "1234",
-//       email: "12313213",
-//       is_admin: false,
-//       firstName: "",
-//       lastName: "",
-//       image_link: ""
-//       })
-//     console.log('created user with no error')
-//     console.log(newUser)
-//   }catch(e){
-//     if(e.message = 'Validation error: Validation isEmail on email failed')
-//       console.log('you got what you wnated')
-//     else 
-//       console.log(e.message)
-//   }
-// })())
-
-// ;((async function(){
-//   try{ 
-//     let destroyedUser = User.destroy({where:{username:'admin'}})
-//   }catch(e){
-//     // if(e.message == 'cannot bulk delete all admin users')
-//     //   console.log('You got what you wnated')
-//     // else 
-//       console.dir(e)
-//   }
-// })())
-
 

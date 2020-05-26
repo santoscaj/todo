@@ -76,7 +76,7 @@ export default class Todos extends Vue {
 
   async getUserInformation(){
     let username = this.$route.params.username
-    let response = await this.axiosGetRequest(config.server.TODOS_URL,{username})
+    let response = await this.axiosGetRequest(config.server.TODOLIST_URL,{username})
     this.todos = response.data
   }
 

@@ -62,7 +62,7 @@ export class MyStore extends VuexModule{
     if(token){
       this.setToken(token)
       let response = await axios.get(config.server.GET_ACTIVE_USER)
-      this.setActiveUser(response.data)
+      this.setActiveUser(response.data.user)
     }
   }
 

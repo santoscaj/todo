@@ -1,13 +1,15 @@
 
-const router = require('./index.js')
+const express = require('express')
+const user = express.Router()
+const {User, TodoList, TodoListUser , TodoItem} = require('../sq')
+const { getUserInfo, checkIfUserOwnsList } = require('../middleware')
 
-
-router.get('/users', async (req, res)=>{
+user.get('/users', async (req, res)=>{
   try{
     let authenticatedUser = req.authenticatedUser
     if(!authenticatedUser.is_admin) return res.sendStatus(404)
 
-    let queryResults = await User.findAll({include:Todo})
+    let allUsers = await User.findAll()
     res.json(allUsers)
   }catch(e){
     if(e.message == 'invalid token') return res.status(400).send(e.message)
@@ -15,11 +17,12 @@ router.get('/users', async (req, res)=>{
   }
 })
 
-router.get('/users/:username', getUserInfo, async(req, res)=>{
-  let {authenticatedUser, user} = req
+user.get('/users/:username', getUserInfo, async(req, res)=>{
+  let authenticatedUser = req.authenticatedUser
+  let user = req.pageOwner
   try{
     if(authenticatedUser.username !== user.username) return res.sendStatus(404)
-    res.json(authenticatedUser)
+    res.json({user: authenticatedUser})
 
   }catch(e){
     if(e.message == 'invalid token') return res.status(400).send(e.message)
@@ -28,8 +31,8 @@ router.get('/users/:username', getUserInfo, async(req, res)=>{
   }
 })
 
-router.delete('/users/:username', getUserInfo, async (req, res)=>{
-  let {user} = req
+user.delete('/users/:username', getUserInfo, async (req, res)=>{
+  let user = req.pageOwner
 
   try{
     let userDeletedResults = await User.destroy({where:{username: user.username}})
@@ -42,8 +45,8 @@ router.delete('/users/:username', getUserInfo, async (req, res)=>{
   }
 })
 
-router.put('/users/:username', getUserInfo,async (req, res)=>{
-  let {user, authenticatedUser} = req
+user.put('/users/:username', getUserInfo,async (req, res)=>{
+  let user = req.pageOwner
   let data = req.body
   if( !data) return res.sendStatus(400)
 
@@ -51,6 +54,7 @@ router.put('/users/:username', getUserInfo,async (req, res)=>{
     await User.update(data, {where:{username:user.username}})
     let newUpdatedUser = await User.findOne({where:{id:user.id}})
     res.json(newUpdatedUser)
+    res.json({user:newUpdatedUser})
     
   }catch(e){
     console.error(e)
@@ -60,4 +64,4 @@ router.put('/users/:username', getUserInfo,async (req, res)=>{
   }
 })
 
-module.exports = router
+module.exports = user

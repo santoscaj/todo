@@ -38,7 +38,7 @@ let BASE_SERVER_URL:string="http://localhost:3000"
 let BASE_CLIENT_URL:string="http://localhost:8080"
 
 const server :Server ={
-    SHARED_LISTS_URL:  BASE_SERVER_URL+'/todolists/:todolist_id/shared/:email',
+    SHARED_LISTS_URL:  BASE_SERVER_URL+'/todolists/:todolist_id/shared',
     TODOLISTS_URL: BASE_SERVER_URL+'/users/:username/todolists',
     TODOLIST_URL: BASE_SERVER_URL+'/users/:email/todolists/:todolist_id',
     BASE_SERVER_URL : BASE_SERVER_URL,

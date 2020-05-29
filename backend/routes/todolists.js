@@ -29,10 +29,15 @@ todolist.get('/users/:username/todolists', getUserInfo , async (req, res)=>{
           where:{id:req.pageOwner.id}
         }, 
         TodoItem
+      ],
+      order: [
+         'name'
       ]
     })
     if(!ownedTodos && !sharedTodos) res.sendStatus(404)
     res.json({shared: sharedTodos, owned: ownedTodos})
+
+
   }catch(e){
     console.error(e)
     return res.sendStatus(500)
@@ -116,7 +121,7 @@ todolist.delete('/users/:email/todolists/:todolist_id', checkIfUserOwnsList, get
   }
 })
   
-todolist.post('/users/:username/todolists/', getUserInfo , async (req, res)=>{
+todolist.post('/users/:username/todolists', getUserInfo , async (req, res)=>{
   try{
       let todolist = req.body
       let createdList = await TodoList.create(todolist, {
@@ -137,8 +142,9 @@ todolist.post('/users/:username/todolists/', getUserInfo , async (req, res)=>{
 
 
 todolist.get('/todolists/:todolist_id/shared', checkIfUserOwnsList , async (req, res)=>{
+
   try{
-    let users = await TodoListUser.findAll({where:{todolist_id: req.todolist_id}})
+    let users = await TodoListUser.findAll({where:{todolist_id: req.params.todolist_id}})
     res.json({users})
   }catch(e){
     console.error(e)
@@ -168,7 +174,7 @@ todolist.post('/todolists/:todolist_id/shared/', checkIfUserOwnsList , async (re
     let user = await User.findOne({where:{email}})
     if(!user) return res.sendStatus(404)
     let newSharedList = await TodoListUser.create({todolist_id, user_id:user.id})
-    res.json(newSharedList)
+    res.json({todolistuser: {...newSharedList, email}})
   }catch(e){
     console.error(e)
   }

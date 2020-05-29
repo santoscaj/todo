@@ -81,6 +81,7 @@ router.post('/users/reset_password/:email', async (req, res)=>{
   let newPassword = generateRandomPassword(16)
 
   sendUserPasswordEmail(userData, newPassword)
+  res.sendStatus(200)
 })
 
 

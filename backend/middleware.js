@@ -37,7 +37,7 @@ async function getEmailOwnerInfo(req, res, next){
 }
 
 async function checkIfUserOwnsList(req, res, next){
-    let newListRegex =   /\D/
+    let newListRegex = /\D/
 
     if(newListRegex.test(req.params.todolist_id)){
       req.userOwnsList = true
@@ -94,7 +94,8 @@ const allDesiredFields = {
 	todolist,
 	todoitem,
 	shared: [...todolist,{todoitems:[...todoitem]}],
-	owned:  [...todolist,{todoitems:[...todoitem]}]
+  owned:  [...todolist,{todoitems:[...todoitem]}],
+  todolistuser : ['user_id', 'id']
 }
 
 function cleanObject(dataObject,field){
@@ -134,4 +135,4 @@ function cleanDataObject(dataObject, desiredFields){
 	return cleanObject
 }
   
-module.exports ={ getUserInfo, checkIfUserOwnsList, cleanObject, getEmailOwnerInfo}
+module.exports = { getUserInfo, checkIfUserOwnsList, cleanObject, getEmailOwnerInfo, cleanDataObject}

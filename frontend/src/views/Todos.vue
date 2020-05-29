@@ -4,7 +4,11 @@
     div(v-if="!errorOccurred")
       Input.search(v-model="search" icon="md-search" placeholder="Filter to-dos")
       .cards-area
-        TodoList(v-for="todo in filteredTodos" :todo.sync="todo" @update="updateList(todo.id)" @change="listChanged({event: $event, id:todo.id})")
+        TodoList(v-for="todo in filteredTodos" :todo="todo" @update="updateList(todo.id)" @change="listChanged({event: $event, id:todo.id})")
+        ShareSettings( title="Share list settings" :value.sync="displayShared" :listId="sharedListId")
+        .add-btn-area
+          Button.add-btn()
+            Icon(type="md-add")
     ErrorPage(v-else :status="status" :statusMessage="statusMessage")
 
 </template>
@@ -16,11 +20,12 @@ import {vxm} from '@/store'
 import axios from 'axios'
 import ErrorPage from '@/components/ErrorPage.vue'
 import TodoList from '@/components/TodoList.vue'
+import ShareSettings from '@/components/ShareSettings.vue'
 import {AxiosGetRequestStatus, AxiosPutRequest, AxiosDeleteRequest} from '@/mixins/axiosRequest'
 import {v4} from 'uuid'
 
 
-@Component({components:{ErrorPage, TodoList},  mixins: [AxiosGetRequestStatus, AxiosPutRequest, AxiosDeleteRequest]} )
+@Component({components:{ErrorPage, TodoList, ShareSettings},  mixins: [AxiosGetRequestStatus, AxiosPutRequest, AxiosDeleteRequest]} )
 export default class Todos extends Vue {
   user = null
   search=''
@@ -28,6 +33,8 @@ export default class Todos extends Vue {
   drafts = []
   itemsToBeRemovedFromDb = []
   listsWithErrors = []
+  displayShared=false
+  sharedListId=0
 
   get activeUser(){
     return vxm.user.activeUser
@@ -154,7 +161,8 @@ export default class Todos extends Vue {
   }
 
   async shareList(id){
-    console.log('inside share', id)
+    this.sharedListId = id
+    this.displayShared = true
   }
 
   async duplicateList(id){
@@ -168,7 +176,9 @@ export default class Todos extends Vue {
     try{
       
       let response = await this.axiosPutRequest(config.server.TODOLIST_URL,{email, todolist_id: newList.id}, newList)
-      this.allTodos.push(response.data.owned)
+      this.allTodos.push({...response.data.owned, listType: 'owned'})
+      console.log('reached here')
+
   }catch(e){
       console.error(e)
     }

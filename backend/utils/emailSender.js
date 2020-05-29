@@ -34,12 +34,13 @@ function sendEmail(options){
 function configureEmail(fileToRead, subject, email, variables){
     let options = emailOptions(subject, email)
     
-    fs.readFile(TEMP_PASS_TEMPLATE, {encoding:'utf-8'}, (err, data)=>{
+    fs.readFile(fileToRead, {encoding:'utf-8'}, (err, data)=>{
         if(err) console.error(err)
         let renderer = handlebars.compile(data)
         let html = renderer(variables)   
         options.html = html
         sendEmail(options)
+        
     })
 }
 

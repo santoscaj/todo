@@ -117,8 +117,8 @@ export default class Profile extends Vue {
     try{
       let response = await this.axiosPutRequest(config.server.PROFILE_URL,{username}, this.fieldsToBeUpdated, 'saved successfully')
       if(response){
-        vxm.user.setActiveUser(response.data)
-        this.user = {...this.user, ...response.data}
+        vxm.user.setActiveUser(response.data.user)
+        this.user = {...this.user, ...response.data.user}
         if(usernameChanged){
           localStorage.setItem('username', response.data.username)
           localStorage.setItem('token', response.data.accessToken)
@@ -148,7 +148,7 @@ export default class Profile extends Vue {
   async created(){
     let username = this.$route.params.username
     let response = await this.axiosGetRequest(config.server.PROFILE_URL, {username})
-    this.user = ( response  && response.data) ? response.data : null
+    this.user = ( response  && response.data.user) ? response.data.user : null
   }
 
   changePassword(display){

@@ -1,29 +1,10 @@
 <template lang="pug">
-  div
+  div 
+    h3  {{title}}
     div(v-if="!errorOccurred")
-      //- Input.search(v-model="search" icon="md-search" placeholder="Filter to-dos")
-      //- .cards-area
-      //-   .grid-block(v-for="todo in filteredTodos" :key="todo.id") 
-      //-     .title(slot="title") 
-      //-       input.title-input(v-model="todo.title")
-      //-       Button.close-btn(type="error" size="small" @click="removeTodo(todo.id)")
-      //-         Icon(type="md-close")
-      //-     Input(type="textarea" :rows="10" v-model="todo.content" style="width: 200px" ) 
-      //-   .grid-block(v-for="draft in filteredDrafts" :key="draft.id") 
-      //-     .title(slot="title") 
-      //-       input.title-input(v-model="draft.title")
-      //-       Button.close-btn(type="error" size="small" @click="removeDraft(draft.id)")
-      //-         Icon(type="md-close")
-      //-     Input(type="textarea" :rows="10" v-model="draft.content" style="width: 200px" ) 
-      //-   .add-btn-area
-      //-     Button.add-btn(@click="addDraft()")
-      //-       Icon(type="md-add")
-      //- .apply-discard-changes
-      //-   Button(type="error" @click="discardChanges()") Discard Changes
-      //-     Icon(type="ios-close-circle-outline")
-      //-   Button(type="success" @click="applyChanges()") Apply Changes
-      //-     Icon(type="md-checkmark")
-      TodoList
+      Input.search(v-model="search" icon="md-search" placeholder="Filter to-dos")
+      .cards-area
+        TodoList(v-for="todo in filteredTodos" :todo.sync="todo" @update="updateList(todo.id)" @change="listChanged({event: $event, id:todo.id})")
     ErrorPage(v-else :status="status" :statusMessage="statusMessage")
 
 </template>
@@ -43,14 +24,31 @@ import {v4} from 'uuid'
 export default class Todos extends Vue {
   user = null
   search=''
-  todos = []
+  allTodos = []
   drafts = []
   itemsToBeRemovedFromDb = []
+  listsWithErrors = []
 
   get activeUser(){
     return vxm.user.activeUser
   }
   
+  get todoType(){
+    if(!this.$route.params.list)
+      return 'all'
+    return this.$route.params.list
+  }
+
+  get title(){
+    let options={
+      'all' : 'All To-dos',
+      'shared' : 'Shared with me',
+      'favorites' : 'My favorites',
+      'owned' : 'My To-dos',
+    }
+    return options[this.todoType]
+  }
+
   get pageOwner(){
     return this.$route.params.username
   }
@@ -60,14 +58,9 @@ export default class Todos extends Vue {
   }
 
   get filteredTodos(){
-    return this.todos.filter(item=> this.searchKeywordsAsRegex.some(keywordRegex=>{
-      return keywordRegex.test(item.title) || keywordRegex.test(item.content)
-    }))
-  }
-  get filteredDrafts(){
-    return this.drafts.filter(item=> this.searchKeywordsAsRegex.some(keywordRegex=>{
-      return keywordRegex.test(item.title) || keywordRegex.test(item.content)
-    }))
+    return this.allTodos
+    .filter(list=>this.todoType=='all' || this.todoType==list.listType)
+    .filter(list=> this.searchKeywordsAsRegex.every(keywordRegex=> keywordRegex.test(list.name) || list.todoitems.some(item=>keywordRegex.test(item.content))))
   }
   
   get username(){
@@ -76,8 +69,15 @@ export default class Todos extends Vue {
 
   async getUserInformation(){
     let username = this.$route.params.username
-    let response = await this.axiosGetRequest(config.server.TODOLIST_URL,{username})
-    this.todos = response.data
+    let response = await this.axiosGetRequest(config.server.TODOLISTS_URL,{username})
+    this.allTodos = []
+    let todolists = response.data
+    if(todolists){
+      for(let listType in todolists)
+        this.allTodos.push(...todolists[listType].map(item=>({...item, listType})))
+    }
+    
+    // this.todos = response.data
   }
 
   @Watch('pageOwner')
@@ -89,56 +89,129 @@ export default class Todos extends Vue {
     this.getUserInformation()
   }
 
+  // handles errors
+  foundListErrors(list){
+    let errorMessage = null
+    let self = this
+
+    if(!list)
+      errorMessage = `ERROR NO LIST FOUND`
+    else if(list && !list.name)
+      errorMessage = `couldnt save list ${list.id} ${list.name}. Title is empty.`
+    else if(list && list.todoitems.some(item=>!item.content))
+      errorMessage = `couldnt save list ${list.id} ${list.name}. One or more todo items are empty.`
+
+    if(errorMessage){
+      if(this.listsWithErrors.findIndex(obj=>obj.listId==list.id)==-1){
+        let error = this.$Message.error({
+          content: errorMessage,
+          duration: 0,
+          closable: true,
+          onClose: ()=>{
+            let index = self.listsWithErrors.findIndex(obj=>obj.listId==list.id)
+            if(index>-1)
+              self.listsWithErrors.splice(index, 1)
+          }
+        })
+        this.listsWithErrors.push({listId: list.id, error})
+      }
+    }else{
+      let index = self.listsWithErrors.findIndex(obj=>obj.listId==list.id)
+      if(index>-1){
+        let obj = self.listsWithErrors.splice(index, 1)[0]
+        obj.error()
+      }
+    }
+
+    return Boolean(errorMessage)
+  }
+
+  async updateList(listId){
+    let self = this
+    let listToUpdate = this.allTodos.find(list=>list.id==listId)
+    let email = vxm.user.activeUser.email
+    
+    if(this.foundListErrors(listToUpdate))
+      return
+
+    try{
+      let response = await this.axiosPutRequest(config.server.TODOLIST_URL,{email, todolist_id: listId}, listToUpdate)
+    }catch(e){
+      console.error(e)
+      let errorMessage = `error saving list ${listToUpdate.id} ${listToUpdate.name}. ${e.message}`
+      let error = this.$Message.error({
+        content: errorMessage,
+        duration: 0,
+        closable: true,
+        onClose: ()=>{
+          let index = self.listsWithErrors.findIndex(obj=>obj.listId==listToUpdate.id)
+          if(index>-1)
+            self.listsWithErrors.splice(index, 1)
+        }
+      })
+      this.listsWithErrors.push({listId: listId, error})
+    }
+  }
+
+  async shareList(id){
+    console.log('inside share', id)
+  }
+
+  async duplicateList(id){
+    let listToDuplicate = this.allTodos.find(list=>list.id==id)
+    let email = vxm.user.activeUser.email
+    let newList = {...listToDuplicate, id:'new', name: listToDuplicate.name+' (copy)'}
+    
+    if(this.foundListErrors(listToDuplicate))
+      return
+
+    try{
+      
+      let response = await this.axiosPutRequest(config.server.TODOLIST_URL,{email, todolist_id: newList.id}, newList)
+      this.allTodos.push(response.data.owned)
+  }catch(e){
+      console.error(e)
+    }
+  }
+
+  deleteList(id){
+    return async () => {
+      let email = vxm.user.activeUser.email
+      try{
+        let response = await this.axiosDeleteRequest(config.server.TODOLIST_URL,{email, todolist_id: id})
+        let index= this.allTodos.findIndex(list=>list.id==id)
+        this.allTodos.splice(index, 1)
+        this.$Message.success('list deleted successfully')
+      }catch(e){
+        console.error(e)
+      }
+    }    
+  }
+
+  confirmDeletion(id){
+    this.$Modal.confirm({
+      title: 'Delete account',
+      content: 'Are you sure you would like to delete the list',
+      onOk: this.deleteList(id),
+      okText: 'OK',
+      cancelText: 'Cancel'
+    })
+  }
+
+  listChanged(event){
+    if(event.event=='share')
+      this.shareList(event.id)
+    else if(event.event=='delete')
+      this.confirmDeletion(event.id)
+    else if(event.event=='duplicate')
+      this.duplicateList(event.id)
+  }
+
   removeListItem(list, id, alsoDeleteItemInDb=false){
     let index= list.indexOf(li=>li.id==id)
     let removedItem = list.splice(index, 1)
     if(alsoDeleteItemInDb)
       this.itemsToBeRemovedFromDb.push(removedItem)
-  }
-
-  removeTodo(id){
-    this.removeListItem(this.todos, id, true)
-  }
-
-  removeDraft(id){
-    this.removeListItem(this.drafts, id)
-  }
-
-  discardChanges(){
-    this.getUserInformation()
-    this.drafts = []
-    this.itemsToBeRemovedFromDb = []
-  }
-
-  applyChanges(){
-    if(this.todos.some(item=>!item.title))
-      return this.$Message.error({content:'cannot save, there are todo items with no title', duration: 3})
-    if(this.drafts.some(item=>!item.title))
-      return this.$Message.error({content:'cannot save, there are drafts with no title', duration: 3})
-    this.deleteItems()
-    this.updateItems()
-    this.createItems()
-    // this.getUserInformation()
-  }
-
-  async deleteItems(){
-    let username = this.pageOwner
-    let response = await this.axiosDeleteRequest(config.server.TODOS_BULK_URL, {username}, this.itemsToBeRemovedFromDb)
-  }
-  
-  async updateItems(){
-    let username = this.pageOwner
-    let response = await this.axiosPutRequest(config.server.TODOS_BULK_URL, {username}, this.todos)
-    this.todos = response.data
-  }
-  async createItems(){
-    
-  }
-
-  addDraft(){
-    if (this.drafts.some(draft=>!draft.content || !draft.title))
-      console.log('shouldnt be added, but it did')
-    this.drafts.push({id: v4(),content: '', title:''})
   }
 
   modifyDropdownValue(newValue){
@@ -160,8 +233,8 @@ export default class Todos extends Vue {
   width: 100%
   height: 100%
   grid-auto-flow: row
-  grid-template-rows: repeat(auto-fill, minmax(200px, 205px))
-  grid-template-columns: repeat(auto-fill, minmax(205px, 210px))
+  grid-template-rows: repeat(auto-fill, minmax(var(--card-height), calc(var(--card-height) + 10px)))
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-width), calc(var(--card-width) + 10px)))
   grid-gap: 20px
 
 .grid-block

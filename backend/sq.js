@@ -40,7 +40,7 @@ async function addDefaultUsers(){
       let usr = await User.findOrCreate({where:{...(user.userData) }})
       for (let todo of user.todoLists){
         let list = await TodoList.findOrCreate({where:{name: todo.name, user_id: usr[0].id}})
-        for(let todoitem of todo.todoItems){
+        for(let todoitem of todo2.todoItems){
           await TodoItem.findOrCreate({where:{...todoitem, todolist_id: list[0].id}})
         }
       }
@@ -168,7 +168,7 @@ const TodoItem = sequelize.define('todoitem', {
     type: Sequelize.STRING,
     allowNull: false
   },
-  completion: Sequelize.BOOLEAN,
+  completed: Sequelize.BOOLEAN,
   todolist_id: {
     type: Sequelize.INTEGER,
     allowNull: false, 
@@ -225,7 +225,10 @@ module.exports = { User, TodoList, TodoItem, TodoListUser, Sequelize, sequelize 
 // testing function
 ;(async ()=>{
     try{
-      const Op = Sequelize.Op
+      // let coco = await TodoItem.bulkCreate([{id:1, content:'now wash the car', todolist_id: 3}, {id: '', content:'new listy list', completed: true ,todolist_id: 3}],{updateOnDuplicate:['content', 'completed']})
+      // let coco = await TodoList.bulkCreate([{ id: '', name: 'newwwbertorandomlist', user_id: 1, todolists: []}], {updateOnDuplicate:['name', 'user_id']})
+      // console.log(coco)
+      // const Op = Sequelize.Op
       // let tocreate = [{todolist_id:2, user_id:2}, {todolist_id:2, user_id:1}]
       // let tocreate1 = {todolist_id:3, user_id:3}
       // // let result = await TodoListUser.bulkCreate(tocreate)
@@ -235,7 +238,7 @@ module.exports = { User, TodoList, TodoItem, TodoListUser, Sequelize, sequelize 
       // let test = await TodoList.findAll({ include: [{model: User, as: 'users', attributes: ['id'],where:{id:1}}, TodoItem]})
       // let test = await TodoList.findAll({ where:{user_id:2},include: [{model: User, as: 'users', attributes: ['id'],where:{id:1}}, TodoItem]})
       // let test = await TodoList.findAll({ where:{[Op.or]:[{user_id:{[Op.eq]: 2}}, {user_id:{[Op.eq]:1}}]},include: [{model: User, as: 'users', attributes: ['id'],where:{id:1}}, TodoItem]})
-      // let listId = 2
+      // let listId = 6
       // let test = await TodoList.findAll({ attributes:["user_id", "shared_users.user_id"],where:{id:listId},include: [{required:false, model: TodoListUser, as: 'shared_users'}]})
 
       // console.log(test.map(x=>x.dataValues))

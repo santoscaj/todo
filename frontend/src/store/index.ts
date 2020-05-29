@@ -12,11 +12,18 @@ const VuexModule = createModule({
   strict: false,
 })
 
-export interface Todo{
-  id: number;
-  title: string;
-  content:string;
-  user_id: number;
+export interface TodoItem{
+  id: Number | String;
+  content: String;
+  completed:Boolean;
+  todolist_id: Number | String;
+}
+
+export interface TodoList{
+  id: Number | String;
+  name: String;
+  user_id: Number | String;
+  todoitems: TodoItem[]
 }
 
 export interface User{
@@ -26,7 +33,7 @@ export interface User{
   email: string;
   is_admin: boolean;
   account_is_active: boolean;
-  todos?: Todo[];
+  todos?: TodoList[];
   firstName?: string | undefined | null;
   lastName: string | undefined | null;
   image_link?: string;

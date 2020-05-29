@@ -4,17 +4,7 @@
       Header
       Layout
         Sider(collapsible :collapsed-width="78" v-model="isCollapsed")
-          transition-group(name="slide-right")
-            router-link.side-link(:to="{name: 'Todos', params: {username: activeUser.username }}" v-if="login" key="todos" :disabled="!activeUser.account_is_active") 
-              Icon(type="md-clipboard") 
-              span(v-if="!isCollapsed") Todos
-            router-link.side-link(:to="{name: 'Users'}" :disabled="!activeUser.is_admin || !activeUser.account_is_active" v-if="login" key="management") 
-              Icon(type="md-people") 
-              span(v-if="!isCollapsed") Management
-            router-link.side-link(
-              :to="{name: 'Profile', params: {username: activeUser.username }}" v-if="login" key="profile" :disabled="!activeUser.account_is_active") 
-              Icon(type="md-person") 
-              span(v-if="!isCollapsed") Profile
+          SideBar(:isCollapsed.sync="isCollapsed")
         Content
           transition(name="slide-left")
             router-view
@@ -23,22 +13,20 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 import Header from './components/Header.vue';
+import SideBar from './components/SideBar.vue';
 import axios from 'axios'
 import {vxm, User } from './store'
 import config from './config'
 import {myRoutes} from './router'
 
 @Component({
-  components: { Header }
+  components: { Header, SideBar}
 })
 export default class App extends Vue {
   isCollapsed=false
+
   get activeUser(){
     return vxm.user.activeUser
-  }
-
-  get login(){
-    return Boolean(vxm.user.usertoken)
   }
 
   get routes(){
@@ -63,6 +51,11 @@ export default class App extends Vue {
 </script>
 
 <style lang="sass">
+:root
+  --header-size: 40px
+  --card-width: 220px
+  --card-height: 240px
+
 html,body
   width: 100% 
   height: 100%
@@ -92,39 +85,18 @@ body
   background: #bfdbf7 !important
   background: #92140cd9 !important
   background: #007ea7 !important
+  background: white !important
+  border-bottom: 1px solid #007ea7
   color: #bfdbf7
   padding: 0 !important
   display: flex !important
   justify-content: flex-end !important
-  height: 40px !important
+  height: var(--header-size) !important
   align-items: center !important
   line-height: unset !important
   user-select: none
   &>*
     margin-left: 8px
-
-.side-link
-  display: block
-  width: 100%
-  height: 30px
-  line-height: 30px
-  font-size: 13px
-  color: #eef0f2
-  // font-family: 'Sarpanch', sans-serif
-  text-align: left
-  transition: all .8s ease
-  &:hover
-    margin-left: 12px
-
-  &>.ivu-icon
-    margin: 0 10px 0 15px
-
-  &:hover
-    background:  rgb(0,0,0,0.1)
-    color: lightgray
-
-.collapse-btn
-  background: red
 
 .flex
   display: flex
@@ -136,6 +108,7 @@ body
   font-size: 11px !important
   padding: 40px
   height: auto !important
+  max-height: calc(100vh - var(--header-size)) !important
 
 .slide-left-enter-active 
   transition: all .2s ease .3s 
@@ -148,13 +121,5 @@ body
 
 .ivu-layout-sider-trigger
   background: transparent !important 
-
-
-// .slide-right-enter-active 
-//   transition: all .2s ease
-
-// .slide-right-leave-active 
-//   transition: translateX(10px)
-
 
 </style>

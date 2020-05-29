@@ -6,6 +6,7 @@ interface Server{
     REGISTER_URL:string;
     USERS_URL: string;
     SHARED_LISTS_URL: string;
+    TODOLISTS_URL: string;
     TODOLIST_URL: string;
     PROFILE_URL: string;
     // TODOS_BULK_URL: string;
@@ -38,7 +39,8 @@ let BASE_CLIENT_URL:string="http://localhost:8080"
 
 const server :Server ={
     SHARED_LISTS_URL:  BASE_SERVER_URL+'/todolists/:todolist_id/shared/:email',
-    TODOLIST_URL: BASE_SERVER_URL+'/users/:username/todolists',
+    TODOLISTS_URL: BASE_SERVER_URL+'/users/:username/todolists',
+    TODOLIST_URL: BASE_SERVER_URL+'/users/:email/todolists/:todolist_id',
     BASE_SERVER_URL : BASE_SERVER_URL,
     LOGIN_URL:BASE_SERVER_URL+"/login",
     REGISTER_URL:BASE_SERVER_URL+"/register",

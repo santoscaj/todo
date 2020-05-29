@@ -55,16 +55,17 @@ export class AxiosGetRequestStatus extends Vue{
 
 @Component
 export class AxiosPutRequest extends Vue{
-    async axiosPutRequest(url, params, data, messageOnSuccess= 'Modified user successfully'){
+    async axiosPutRequest(url, params, data, messageOnSuccess=null){
         url = getRoute(url, params)
         let response = null
         try{
             response = await axios.put(url, data)
-            this.$Message.success(messageOnSuccess)
+            if(messageOnSuccess) this.$Message.success(messageOnSuccess)
         }catch(err){
             console.dir(err)
             let statusMessage = err.response.data ?  err.response.data : err.response.statusText
-            this.$Message.error(statusMessage)
+            if(messageOnSuccess) this.$Message.error(statusMessage)
+            throw err
         }
         return response
     }
@@ -91,7 +92,6 @@ export class AxiosPostRequest extends Vue{
         url = getRoute(url, params)
         let response = null
         try{
-            console.log(url)
             response = await axios.post(url, data)
         }catch(err){
             throw err

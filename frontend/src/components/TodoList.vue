@@ -1,27 +1,28 @@
 
 <template lang="pug">
 
-.mycontainer(ref="container" :class="{hover: hover, card:cardsStyle, tile:!cardsStyle}" @click.stop="titleClicked()")
+.mycontainer(ref="container" :class="{hover: hover, card:cardsStyle, tile:!cardsStyle}" @click="titleClicked()")
   .title
-    input.title-input(v-model="todo.title" :disabled="!edit")
-    .title-btns-area
-      Button.mini-btn(v-if="!edit" ref="edit-btn" type="warning" size="small" @click.stop="changeEdit()" :class="{'bigger-btn':makeBtnBigger}")
-        Icon(type="md-create")
-      Button.mini-btn(v-if="edit" type="success" size="small" @click.stop="changeEdit()")
-        Icon(type="md-checkmark")
+    input.title-input(v-model="todo.name" :disabled="!edit" @input="update()")
+    //- To add editable todo uncomment options below
+    //- .title-btns-area
+    //-   Button.mini-btn(v-if="!edit" ref="edit-btn" type="warning" size="small" @click.stop="changeEdit()" :class="{'bigger-btn':makeBtnBigger}")
+    //-     Icon(type="md-create")
+    //-   Button.mini-btn(v-if="edit" type="success" size="small" @click.stop="changeEdit()")
+    //-     Icon(type="md-checkmark")
     button.mini-btn#options(size="small" @click.stop="showMiniMenu()" :class="{'light-background': miniMenu}")
       Icon(type="md-more")
     .options(v-if="miniMenu")
       .option-item(v-for="option in options" :key="option.name" @click="option.call") {{option.name}}
   .todo-list(:style="{'pointer-events': edit? 'auto': 'none'}" :class="{'todo-list-selected': displayBody}")
-    .todo-item(v-for="item in todo.items" :key="item.id")
-      checkbox(v-model="item.completion")
-      input(:class="{completed:item.completion}" v-model="item.content")
-      button.mini-btn.close-btn
+    .todo-item(v-for="item in todo.todoitems" :key="item.id")
+      checkbox(v-model="item.completed" @input="update()")
+      input(:class="{completed:item.completed}" v-model="item.content" :ref="'input'+item.id" @input="update()")
+      button.mini-btn.close-btn(@click="removeItem(item.id)")
         Icon(type="md-close")
     .todo-item
       .space
-      button.mini-btn
+      button.mini-btn.add-btn(@click="addItem()")
         Icon(type="md-add")
     //- Input(type="textarea" :rows="10" v-model="draft.content" style="width: 200px" ) 
 
@@ -29,28 +30,68 @@
 
 <script lang="ts">
 //@ts-nocheck
-import { Component, Prop, Vue } from 'vue-property-decorator';
+import { v4 } from 'uuid'
+import { Component, Prop, Vue , Watch} from 'vue-property-decorator';
+import {TodoList} from '@/store'
+import {emptyTodoItem} from '@/utils/emptyTodo'
+
 
 @Component
-export default class TodoList extends Vue {
-  // @Prop() private msg!: string;
+export default class TodoLists extends Vue {
+  emptyTodoItem = emptyTodoItem()
 
-  edit=false
-  hover=false
+  @Prop( {type: Boolean, default: true}) debounce
+  @Prop( {type: Number, default: 1000}) debounceTimer
+  @Prop( {type: Boolean, default: false}) hover
+  @Prop( {type: Boolean, default: true}) edit
+  @Prop( {type: String, default: 'List cant be modified at the moment' }) disabledMessage
+  @Prop( {type: Boolean, default: true}) cardsStyle
+  @Prop( {type: TodoList, default: emptyTodoItem}) todo
+
   makeBtnBigger=false
   miniMenu=false
   selected=false
-
-  get cardsStyle(){
-    return true                                             
-  }
 
   get displayBody(){
     return this.cardsStyle || this.selected
   }
 
-  changeEdit(){
-    this.edit= !this.edit
+  // changeEdit(){
+  //   this.edit= !this.edit
+  // }
+
+  debouncer(){    
+    let timeout = 0
+    return function(){
+      let timer = this.debounce ? this.debounceTimer : 0
+      clearTimeout(timeout)
+      timeout = setTimeout(()=>{this.$emit('update')}, timer)
+    }
+  }
+
+  update = this.debouncer()
+
+  addItem(){
+    this.update()
+    let todoItems = this.todo.todoitems
+    let thereAreEmptyItems = todoItems.some(item=>!item.content)
+    if(thereAreEmptyItems)
+      this.$Message.error('complete current item to add more')
+    else{
+      let id = v4()
+      todoItems.push({...emptyTodoItem, id})
+      this.$nextTick(()=>{
+        this.$refs['input'+id][0].focus()
+        this.$refs['input'+id][0].select()
+      })
+    }
+  }
+
+  removeItem(itemId){
+    this.update()
+    let index = this.todo.todoitems.findIndex(item=>item.id==itemId)
+    if(index>-1)
+      this.todo.todoitems.splice(index, 1)
   }
 
   showMiniMenu(){
@@ -61,74 +102,59 @@ export default class TodoList extends Vue {
       this.$refs.container.addEventListener('click', ()=>{this.miniMenu = false}, {once:true})
   }
 
-  sendError(err){
-    this.$emit('error', err)
-  }
-
   titleClicked(){
-    if(!this.edit){
-      this.makeBtnBigger = true
-      setTimeout(()=>{this.makeBtnBigger = false},250)
-    }
-
-    this.selected = true
-    window.addEventListener('click', ()=>{this.selected = false}, {once:true})
+    if(!this.edit)
+      this.$Message.error(this.disabledMessage)
   }
 
-  change(){
+  changeEvent(changeType){
+    let self = this
     return function(eventType){
-      console.log(eventType)
-      this.$emit('change', eventType)
+      self.$emit('change', changeType)
     }
   }
 
-  // share(){
-  //   console.log('sharing')
-  //   this.$emit('share')
-  // }
-
-  // delete(){
-  //   console.log('deleting')
-  //   this.$emit('delete')
-  // }
-
-  // removeCompleted(){
-  //   console.log('removing completed')
-  //   this.$emit('completed')
-  // }
-  
-  // duplicate(){
-  //   console.log('duplicating')
-  //   this.$emit('duplicate')
-  // }
+  removeCompleted(){
+    let self = this
+    return function(){
+      self.update()
+      let index = 0
+      let todoitems = self.todo.todoitems
+      while(index < todoitems.length){
+        if(todoitems[index].completed)
+          todoitems.splice(index, 1)
+        else
+          index++
+      }
+    }
+  }
 
   options = [
     {
       name: 'share settings',
-      call: this.change('share')
+      call: this.changeEvent('share')
     },
     {
       name: 'remove completed',
-      call: this.change('completed')
+      call: this.removeCompleted()
     },
     {
-      name: 'duplicate list',
-      call: this.change('duplicate')
+      name: 'copy/duplicate list',
+      call: this.changeEvent('duplicate')
     },
     {
       name: 'delete list',
-      call: this.change('delete')
+      call: this.changeEvent('delete')
     },
   ]
 
-  todo = {
-    id: 1, 
-    title: 'car brands',
-    shared: ['juan', 'jose', 'maria'],
-    items: [
-      {         id:1,         completion: false,         content: 'tesla'       },       {         id:2,         completion: true,         content: 'honda'       },       {         id:3,         completion: false,         content: 'toyota'       },       {         id:4,         completion: false,         content: 'mazda'       },       {         id:5,         completion: false,         content: 'mercedes'       },       {         id:6,         completion: true,         content: 'skoda'       },             {         id:7,         completion: false,         content: 'mazda'       },       {         id:15,         completion: false,         content: 'mercedes'       },       {         id:61,         completion: true,         content: 'skoda'       },             {         id:14,         completion: false,         content: 'mazda'       },       {         id:185,         completion: false,         content: 'mercedes'       },       {         id:1116,         completion: true,         content: 'skoda'       },             {         id:1114,         completion: false,         content: 'mazda'       },       {         id:11115,         completion: false,         content: 'mercedes'       },       {         id:11116,         completion: true,         content: 'skoda'       },
-    ]
-  }
+  // todo = {
+  //   id: 1, 
+  //   title: 'car brands',
+  //   todoitems: [
+  //     {         id:1,         completed: false,         content: 'tesla'       },       {         id:2,         completed: true,         content: 'honda'       },       {         id:3,         completed: false,         content: 'toyota'       },       {         id:4,         completed: false,         content: 'mazda'       },       {         id:5,         completed: false,         content: 'mercedes'       },       {         id:6,         completed: true,         content: 'skoda'       },             {         id:7,         completed: false,         content: 'mazda'       },       {         id:15,         completed: false,         content: 'mercedes'       },       {         id:61,         completed: true,         content: 'skoda'       },             {         id:14,         completed: false,         content: 'mazda'       },
+  //   ]
+  // }
 
 }
 </script>
@@ -169,7 +195,7 @@ input
 
 .card
   padding: 0 3px 3px 3px 
-  width: 250px
+  width: var(--card-width)
 
 .tile
   width: 100%
@@ -215,6 +241,10 @@ input
   border-color: tomato
   background: white
   // color: red
+
+.add-btn
+  border-color: green
+  background: white
 
 .bigger-btn
   width: 24px
@@ -273,7 +303,7 @@ input
   // padding-right: 5px
 
 .todo-list-selected
-  height: 260px
+  height: calc(var(--card-height) - 20px)
 
 .todo-item
   padding: 0 3px

@@ -55,9 +55,11 @@ export default class MyHeader extends Vue{
 
 <style lang="sass">
 
+
 .ivu-layout-header
     // font-family: 'Sarpanch', sans-serif
-    color: black
+    color: #007ea7 !important
+    font-weight: 600 !important
     user-select: none
 
 .menu

@@ -2,7 +2,7 @@
 const express = require('express')
 const user = express.Router()
 const {User, TodoList, TodoListUser , TodoItem} = require('../sq')
-const { getUserInfo, checkIfUserOwnsList } = require('../middleware')
+const { getUserInfo } = require('../middleware')
 
 user.get('/users', async (req, res)=>{
   try{

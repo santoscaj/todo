@@ -38,19 +38,13 @@ async function authenticator(req, res, next){
  */
 
 function dataCleaner(req, res, next){
-    let originalSend = res.send
-    res.send = function(data){
-        // console.log('========================',data)
-        // let modifiedData = JSON.parse(data)
+    let originalJson = res.json
+    res.json = function(data){
         let modifiedData = data
-
-        for(let [field, value] of Object.entries(modifiedData)){
-            console.log(field, value)
+        for(let [field, value] of Object.entries(modifiedData))
             modifiedData[field] = cleanObject(value, field)
-        }
         arguments[0] = modifiedData
-        // arguments[0] = JSON.stringify(modifiedData)
-        originalSend.apply(res, arguments);
+        originalJson.apply(res, arguments);
     }
     next()
 }

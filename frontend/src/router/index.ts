@@ -59,6 +59,16 @@ const routes: RouteConfig[] = [
     }
   },
   {
+    path: '/users/:username/todos/:list',
+    name: 'SpecificTodoLists',
+    component: Todos,// () => import('../views/Todos.vue'),
+    meta:{
+      requiresAuth: true,
+      requiresActiveAccount: true,
+      pageTitle: 'User to-do lists'
+    }
+  },
+  {
     path: '/users/:username',
     name: 'Profile',
     component: Profile, // () => import('../views/Profile.vue'),

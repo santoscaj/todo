@@ -7,7 +7,7 @@
         TodoList(v-for="todo in filteredTodos" :todo="todo" @update="updateList(todo.id)" @change="listChanged({event: $event, id:todo.id})")
         ShareSettings( title="Share list settings" :value.sync="displayShared" :listId="sharedListId")
         .add-btn-area
-          Button.add-btn()
+          Button.add-btn(v-on:click="addTodoList()")
             Icon(type="md-add")
     ErrorPage(v-else :status="status" :statusMessage="statusMessage")
 
@@ -23,6 +23,7 @@ import TodoList from '@/components/TodoList.vue'
 import ShareSettings from '@/components/ShareSettings.vue'
 import {AxiosGetRequestStatus, AxiosPutRequest, AxiosDeleteRequest} from '@/mixins/axiosRequest'
 import {v4} from 'uuid'
+import {emptyTodoList} from '@/utils/emptyTodo'
 
 
 @Component({components:{ErrorPage, TodoList, ShareSettings},  mixins: [AxiosGetRequestStatus, AxiosPutRequest, AxiosDeleteRequest]} )
@@ -87,6 +88,15 @@ export default class Todos extends Vue {
     // this.todos = response.data
   }
 
+  addTodoList(){
+    if(this.allTodos.some(list=>!list.name || list.todoitems.some(item=>!item.content)))
+      return this.$Message.error('One or more lists have incomplete fields. Complete other lists to continue')
+
+    let newList = emptyTodoList()
+    newList.id = v4()
+    this.allTodos.push(newList)
+  }
+
   @Watch('pageOwner')
   updatePageInfo(){
     this.getUserInformation()
@@ -104,9 +114,9 @@ export default class Todos extends Vue {
     if(!list)
       errorMessage = `ERROR NO LIST FOUND`
     else if(list && !list.name)
-      errorMessage = `couldnt save list ${list.id} ${list.name}. Title is empty.`
+      errorMessage = `couldnt save list ${list.name.toUpperCase()}. Title is empty.`
     else if(list && list.todoitems.some(item=>!item.content))
-      errorMessage = `couldnt save list ${list.id} ${list.name}. One or more todo items are empty.`
+      errorMessage = `couldnt save list ${list.name.toUpperCase()}. One or more todo items are empty.`
 
     if(errorMessage){
       if(this.listsWithErrors.findIndex(obj=>obj.listId==list.id)==-1){

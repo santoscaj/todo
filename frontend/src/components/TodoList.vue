@@ -41,7 +41,7 @@ export default class TodoLists extends Vue {
   emptyTodoItem = emptyTodoItem()
 
   @Prop( {type: Boolean, default: true}) debounce
-  @Prop( {type: Number, default: 1000}) debounceTimer
+  @Prop( {type: Number, default: 5000}) debounceTimer
   @Prop( {type: Boolean, default: false}) hover
   @Prop( {type: Boolean, default: true}) edit
   @Prop( {type: String, default: 'List cant be modified at the moment' }) disabledMessage

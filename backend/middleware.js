@@ -95,7 +95,7 @@ const allDesiredFields = {
 	todoitem,
 	shared: [...todolist,{todoitems:[...todoitem]}],
   owned:  [...todolist,{todoitems:[...todoitem]}],
-  todolistuser : ['user_id', 'id']
+  todolistuser : ['user_id', 'todolist_id', {user:['email', 'id']}]
 }
 
 function cleanObject(dataObject,field){

@@ -205,21 +205,13 @@ const TodoListUser = sequelize.define('todolist_user', {
   // options
 });
 
-
-// current format:
-TodoList.belongsToMany(User, {through: TodoListUser, as: 'users', foreignKey: 'todolist_id', constraints: false})
-User.belongsToMany(TodoList, {through: TodoListUser, as: 'publicTodoLists', foreignKey: 'user_id', constraints: false})
-TodoList.hasMany(TodoListUser, {foreignKey: 'todolist_id', as: 'shared_users' ,constraints: false})
-User.hasMany(TodoListUser, {foreignKey: 'user_id', as: 'shared_lists' ,constraints: false})
-
-
-// New Implementation Super many to many as explained in sequelize docs: https://sequelize.org/master/manual/advanced-many-to-many.html
-// User.belongsToMany(TodoList, { through: TodoListUser });
-// TodoList.belongsToMany(User, { through: TodoListUser });
-// User.hasMany(TodoListUser);
-// TodoListUser.belongsTo(User);
-// TodoList.hasMany(TodoListUser);
-// TodoListUser.belongsTo(TodoList);
+// Super many to many as explained in sequelize docs: https://sequelize.org/master/manual/advanced-many-to-many.html
+User.belongsToMany(TodoList, {through: TodoListUser, as: 'publicTodoLists', foreignKey: 'user_id', constraints: false});
+TodoList.belongsToMany(User, {through: TodoListUser, as: 'users', foreignKey: 'todolist_id', constraints: false});
+User.hasMany(TodoListUser, {foreignKey: 'user_id', as: 'shared_lists' ,constraints: false});
+TodoListUser.belongsTo(User, {foreignKey: 'user_id'});
+TodoList.hasMany(TodoListUser, {foreignKey: 'todolist_id', as: 'shared_users' ,constraints: false});
+TodoListUser.belongsTo(TodoList, {foreignKey: 'todolist_id'});
 
 
 sequelize.sync()
@@ -234,8 +226,11 @@ addDefaultUsers()
 // testing function
 ;(async ()=>{
     try{
+      // let tl = await TodoListUser.findAll( {where:{todolist_id: 5}, include: User})
+      // console.log('list ------------------------------------------',tl)
+      // tl.forEach(x=>console.log('user -------------------------------------------',x.user.dataValues))
+      // console.log('---------------------------------------------------------------')
       // const {cleanDataObject} = require('./middleware')
-      let tl = await User.findAll( {include: {model: TodoListUser, as: 'shared_lists', where:{todolist_id:7}}})
       // let coco = await TodoItem.bulkCreate([{id:1, content:'now wash the car', todolist_id: 3}, {id: '', content:'new listy list', completed: true ,todolist_id: 3}],{updateOnDuplicate:['content', 'completed']})
       // let coco = await TodoList.bulkCreate([{ id: '', name: 'newwwbertorandomlist', user_id: 1, todolists: []}], {updateOnDuplicate:['name', 'user_id']})
       // console.log(coco)
@@ -245,8 +240,6 @@ addDefaultUsers()
       // // let result = await TodoListUser.bulkCreate(tocreate)
       // let result2 = await TodoListUser.create(tocreate1)
       // console.log(result2.dataValues)
-      console.log(tl)
-      console.log('---------------------------------------------------------------')
       // console.log(console.log(cleanDataObject(tl, ['todolist_id', 'user_id'])))
 
 

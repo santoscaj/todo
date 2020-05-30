@@ -4,12 +4,13 @@
             .confirmation-box
                 .header-area
                     p {{title}}
+                    Icon(type="md-close" @click="confirmation(true)" )
                 .share-area
                     p Users that currently have access to list:
                     .shared-users-area
-                        .share-item(v-for="user in sharedUsers" :key="user.id")
-                            p {{user.email}}
-                            button.close-btn(@click="removeShared(user.email)") 
+                        .share-item(v-for="list in sharedUsers" :key="list.user.id")
+                            p {{list.user.email}}
+                            button.close-btn(@click="removeShared(list.user.email)") 
                                 Icon(type="md-close")
                     .add-newuser-area
                         p add new user :
@@ -18,18 +19,17 @@
                             button.add-btn(@click="shareWithUser()") share 
                                 Icon(type="md-person-add")
                 .confirmation-area
-                    //- button.confirmation-btn.red(  @click="confirmation(false)") No
                     button.confirmation-btn.blue(  @click="confirmation(true)") Done
 </template>
 
 <script>
 import {Component, Vue, Watch, Prop} from 'vue-property-decorator'
-import {AxiosGetRequest, AxiosPostRequest} from '@/mixins/axiosRequest'
+import {AxiosGetRequest, AxiosPostRequest, AxiosDeleteRequest} from '@/mixins/axiosRequest'
 import config from '@/config'
 // import {vxm} from '@/store'
 // import axios from 'axios'
 
-@Component({mixins: [AxiosGetRequest, AxiosPostRequest]})
+@Component({mixins: [AxiosGetRequest, AxiosPostRequest, AxiosDeleteRequest]})
 export default class ShareSettings extends Vue{
     emailToShareWith = ''
     
@@ -39,7 +39,7 @@ export default class ShareSettings extends Vue{
             return 
         try{
             let response = await this.axiosGetRequest(config.server.SHARED_LISTS_URL, {todolist_id: this.listId})
-            console.log(response)
+            this.sharedUsers = response.data.todolistuser
         }catch(e){
             console.error(e)
         }
@@ -50,16 +50,29 @@ export default class ShareSettings extends Vue{
         let todolist_id = this.listId
 
         try{
-            let response = await this.axiosPostRequest(config.server.SHARED_LISTS_URL, {todolist_id: this.listId}, {email})
-            console.log(response)
+            let response = await this.axiosPostRequest(config.server.SHARED_LISTS_URL, {todolist_id}, {email})
+            this.sharedUsers.push(response.data.todolistuser)
+            this.emailToShareWith = ''
         }catch(e){
-            console.error(e)
+            if(e.response.status && e.response.status==409)
+                this.$Message.error("Couldn't share. User already has access to this list")
+            console.dir(e)
         }
 
     }
 
-    removeShared(email){
+    async removeShared(email){
+
         console.log('removing ', email)
+        let index = this.sharedUsers.findIndex(list=>list.user.email == email)
+        if(index==-1) return this.$Message.error('Specific user not found')
+        let todolist_id = this.sharedUsers[index].todolist_id
+        try{
+            let response = await this.axiosDeleteRequest(config.server.TODOLIST_URL,{email, todolist_id})
+            this.sharedUsers.splice(index, 1)
+        }catch(e){
+            console.error(e)
+        }
     }
 
     @Prop( {type: String, default: 'Share Settings'}) title
@@ -67,21 +80,12 @@ export default class ShareSettings extends Vue{
     @Prop( {type: Function, default: ()=>{} }) callback
     @Prop( {type: Number, required:true}) listId
 
-    sharedUsers = [
-        {id:1, email:'google@google.com'},
-        {id:2, email:'google1@google.com'},
-        {id:3, email:'google2@google.com'},
-        {id:4, email:'google3@google.com'},
-        {id:5, email:'google4@google.com'},
-        {id:6, email:'google5@google.com'},
-        {id:7, email:'google6@google.com'},
-        {id:8, email:'google7@google.com'}
-    ]
-
+    sharedUsers = []
 
     confirmation(confirmation){
         this.$emit('update:value', false)
         this.callback(confirmation)
+        this.sharedUsers = []
     }
 
 }
@@ -120,12 +124,18 @@ export default class ShareSettings extends Vue{
     overflow: hidden
 
 .header-area
+    display: flex
     background: lightgray
     margin: 0
     border-radius:5px 5px 0 0
     height: auto
     padding: 3px
     font-size: 12px
+    &>p
+        flex: 1 1 100%
+    &>i
+        padding: 4px
+    
 
 .share-area
     margin: 20px 10px

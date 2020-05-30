@@ -87,7 +87,7 @@ todolist.put('/users/:email/todolists/:todolist_id', checkIfUserOwnsList,  async
     console.error(e)
   } 
 })
-
+'/todolists/:todolist_id/:userid'
 todolist.delete('/users/:email/todolists/:todolist_id', checkIfUserOwnsList, getEmailOwnerInfo, async (req, res)=>{
   let todolist_id = req.params.todolist_id
   if(!todolist_id) return res.sendStatus(400)
@@ -96,10 +96,10 @@ todolist.delete('/users/:email/todolists/:todolist_id', checkIfUserOwnsList, get
       let deletedList = await TodoList.destroy({where:{id: todolist_id}})
       if(deletedList == 0) return res.sendStatus(404)
     }else if(req.userOwnsList){
-      let deletedList = await TodoListUser.destroy({where:{id: todolist_id, user_id: req.emailOwner.id}})
+      let deletedList = await TodoListUser.destroy({where:{todolist_id, user_id: req.emailOwner.id}})
       if(deletedList == 0) return res.sendStatus(404)
     }else if(req.userIsSharedList){
-      let deletedList = await TodoListUser.destroy({where:{id: todolist_id, user_id: req.authenticatedUser.id}})
+      let deletedList = await TodoListUser.destroy({where:{todolist_id, user_id: req.authenticatedUser.id}})
       if(deletedList == 0) return res.sendStatus(404)
     }else
       return res.sendStatus(404)
@@ -144,10 +144,10 @@ todolist.post('/users/:username/todolists', getUserInfo , async (req, res)=>{
 todolist.get('/todolists/:todolist_id/shared', checkIfUserOwnsList , async (req, res)=>{
 
   try{
-    let users = await TodoListUser.findAll({where:{todolist_id: req.params.todolist_id}})
-    res.json({users})
+    let todolistuser = await TodoListUser.findAll( {where:{todolist_id: req.params.todolist_id}, include: User})
+    res.json({todolistuser})
   }catch(e){
-    console.error(e)
+    console.log(typeof e)
     return res.sendStatus(500)
   }
 })
@@ -168,15 +168,21 @@ todolist.get('/todolists/:todolist_id/shared', checkIfUserOwnsList , async (req,
 // })
   
 todolist.post('/todolists/:todolist_id/shared/', checkIfUserOwnsList , async (req, res)=>{
+  let {todolist_id} = req.params
+  let email = req.body.email
+  if(email === req.authenticatedUser.id) return res.sendStatus(409)
+
   try{
-    let {todolist_id} = req.params
-    let email = req.body.email
     let user = await User.findOne({where:{email}})
     if(!user) return res.sendStatus(404)
     let newSharedList = await TodoListUser.create({todolist_id, user_id:user.id})
-    res.json({todolistuser: {...newSharedList, email}})
+    let todolistuser = await TodoListUser.findOne( {where:{todolist_id: newSharedList.todolist_id, user_id: newSharedList.user_id}, include: User})
+    res.json({todolistuser})
   }catch(e){
+    if(e.name=='SequelizeUniqueConstraintError')
+      return res.sendStatus(409)
     console.error(e)
+    return res.sendStatus(500)
   }
 })
   

@@ -55,7 +55,7 @@ sequelize
   .then(() => {
     if(process.env.LOG_DB==='false')
       console.log("To see DB queries change environmental variable LOG_DB to 'true'");
-    console.log('Connection has been established successfully.');
+    console.log('Database connection established.');
   })
   .catch(err => {
     console.error('Unable to connect to the database:', err);

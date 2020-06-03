@@ -142,12 +142,13 @@ todolist.post('/users/:username/todolists', getUserInfo , async (req, res)=>{
 
 
 todolist.get('/todolists/:todolist_id/shared', checkIfUserOwnsList , async (req, res)=>{
-
+  let todolist_id = req.params.todolist_id
   try{
-    let todolistuser = await TodoListUser.findAll( {where:{todolist_id: req.params.todolist_id}, include: User})
+    if(/\D/.test(todolist_id)) return res.sendStatus(400)
+    let todolistuser = await TodoListUser.findAll( {where:{todolist_id}, include: User})
     res.json({todolistuser})
   }catch(e){
-    console.log(typeof e)
+    console.log(e)
     return res.sendStatus(500)
   }
 })

@@ -6,6 +6,28 @@ const ViewUI = require('view-design');
 // import { Tooltip, Menu, Submenu, Message, MenuItem, Button, Avatar, Table, Input, Form, FormItem, Card, Dropdown, DropdownMenu, DropdownItem, Icon, ViewUI } from 'view-design';
 import 'view-design/dist/styles/iview.css';
 import axios from 'axios'
+import Socket from '@/socket'
+
+
+
+// Vue.config.productionTip = false;
+// Vue.use(ViewUI);
+// // Vue.use(new VueSocketIO({
+// //   // debug: true,
+// //   connection: 'http://localhost:3000'
+// // }))
+
+// const sockets = {
+//   connect: ()=> {console.log('connected homeboy')}
+// }
+
+// const MyPlugin = {
+//   install: function(Vue : any){
+//     Vue.prototype.$MyPlg = function(){
+//       console.log('klktudice')
+//     }
+//   }
+// }
 
 // Vue.component('Menu', Menu);
 // Vue.component('Form', Form);
@@ -27,15 +49,7 @@ import axios from 'axios'
 Vue.config.productionTip = false;
 
 Vue.use(ViewUI);
-
-// router.beforeEach((to, from, next) => {
-//   ViewUI.LoadingBar.start();
-//   next();
-// });
-
-// router.afterEach(route => {
-//   ViewUI.LoadingBar.finish();
-// });
+Vue.use(new Socket());
 
 export const myVue = new Vue({
   router,

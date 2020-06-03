@@ -5,6 +5,12 @@ import emptyUser from '@/utils/emptyUser'
 import axios from 'axios'
 import config from '@/config'
 
+// const socket = io(config.server.BASE_SERVER_URL)
+
+// socket.on('connect', ( data )=>{
+//   console.log('connected')
+// }) 
+
 Vue.use(Vuex);
 
 const VuexModule = createModule({
@@ -43,9 +49,10 @@ export class MyStore extends VuexModule{
   activeUser : User = emptyUser()
   usertoken :string | null = null
   pageLoaded = false
+  sessionId: string | number | null = null
 
   get userIsLoggedIn(){
-    return Boolean(this.usertoken)
+    return !!this.activeUser.id
   }
 
   @mutation checkPageLoader(){
@@ -60,6 +67,10 @@ export class MyStore extends VuexModule{
   @mutation setToken(token: string){
     this.usertoken = token
   }
+
+  @mutation setSessionId(sessionId: string|number){
+    this.sessionId = sessionId
+  }
   
   @mutation setActiveUser(user:User){
     this.activeUser = user
@@ -72,6 +83,17 @@ export class MyStore extends VuexModule{
       this.setActiveUser(response.data.user)
     }
   }
+
+  @action async setUpSessionId(sessionId: string | null){
+    if(sessionId){
+      // this.setSessionId(sessionId)
+      // let response = await axios.get(config.server.GET_ACTIVE_USER)
+      // this.setActiveUser(response.data.user)
+    }else{
+      let response = await axios.get('/session')
+    }
+  }
+
 
 }
 

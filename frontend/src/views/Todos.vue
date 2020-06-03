@@ -4,7 +4,12 @@
     div(v-if="!errorOccurred")
       Input.search(v-model="search" icon="md-search" placeholder="Filter to-dos")
       .cards-area
-        TodoList(v-for="todo in filteredTodos" :todo="todo" @update="updateList(todo.id)" @change="listChanged({event: $event, id:todo.id})")
+        TodoList(v-for="todo in filteredTodos" 
+        :todo="todo" 
+        @update="updateList(todo.id)" 
+        @change="listChanged({event: $event, id:todo.id})"
+        :edit="false"
+        )
         ShareSettings( title="Share list settings" :value.sync="displayShared" :listId="sharedListId")
         .add-btn-area
           Button.add-btn(v-on:click="addTodoList()")
@@ -169,6 +174,8 @@ export default class Todos extends Vue {
       this.listsWithErrors.push({listId: listId, error})
     }
   }
+
+
 
   async shareList(id){
     this.sharedListId = id

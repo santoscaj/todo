@@ -38,10 +38,10 @@ let BASE_SERVER_URL:string="http://localhost:3000"
 let BASE_CLIENT_URL:string="http://localhost:8080"
 
 const server :Server ={
+    BASE_SERVER_URL : BASE_SERVER_URL,
     SHARED_LISTS_URL:  BASE_SERVER_URL+'/todolists/:todolist_id/shared',
     TODOLISTS_URL: BASE_SERVER_URL+'/users/:username/todolists',
     TODOLIST_URL: BASE_SERVER_URL+'/users/:email/todolists/:todolist_id',
-    BASE_SERVER_URL : BASE_SERVER_URL,
     LOGIN_URL:BASE_SERVER_URL+"/login",
     REGISTER_URL:BASE_SERVER_URL+"/register",
     GET_ACTIVE_USER: BASE_SERVER_URL+"/activeuser",

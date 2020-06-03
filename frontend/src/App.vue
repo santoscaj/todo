@@ -5,13 +5,29 @@
       Layout
         Sider(collapsible :collapsed-width="78" v-model="isCollapsed")
           SideBar(:isCollapsed.sync="isCollapsed")
-        Content
+        Content(style="position:relative")
           transition(name="slide-left")
             router-view
+          .block.login(v-if="false")
+            .message 
+              p This page is being edited on a different session.
+              p Please wait until editing is complete 
+                span.typing#dot1 .
+                span.typing#dot2 .
+                span.typing#dot3 .
+        .block.session(v-if="duplicateSession")
+          .message 
+            p You have logged in from a different computer.
+            p Please refresh to log back in
+              span.typing#dot1 .
+              span.typing#dot2 .
+              span.typing#dot3 .
+
+
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
+import { Component, Vue, Watch } from 'vue-property-decorator';
 import Header from './components/Header.vue';
 import SideBar from './components/SideBar.vue';
 import axios from 'axios'
@@ -19,11 +35,22 @@ import {vxm, User } from './store'
 import config from './config'
 import {myRoutes} from './router'
 
+// console.log(socket)
+
 @Component({
   components: { Header, SideBar}
 })
 export default class App extends Vue {
   isCollapsed=false
+
+  get connected(){
+    //@ts-ignore
+    return this.socket.isConnected
+  }
+  get duplicateSession(){
+    //@ts-ignore
+    return this.socket.isDuplicate
+  }
 
   get activeUser(){
     return vxm.user.activeUser
@@ -37,15 +64,25 @@ export default class App extends Vue {
     return vxm.user.activeUser.account_is_active
   }
 
+  connectSocket(token : string){
+    let {id, username, email} = vxm.user.activeUser
+    this['socket'].login({id, username, email, token})
+  }
+
   async beforeCreate(){
     let token = localStorage.getItem('token')
+    let sessionId = localStorage.getItem('sessionId')
     try{
       vxm.user.loadUser(token)
+      this.$nextTick()
+      if(vxm.user.userIsLoggedIn && token)
+        this.connectSocket(token)
     }catch(e){
       console.error(e)
       this.$router.push('/logout')
     }
     vxm.user.checkPageLoader()
+
   }
 }
 </script>
@@ -97,6 +134,43 @@ body
   user-select: none
   &>*
     margin-left: 8px
+
+.block
+  position: absolute
+  background: rgb(0,0,0,0.2)
+  display: flex
+  justify-content: center
+  align-items: center
+
+  top: 0
+  bottom: 0
+  left: 0
+  right: 0
+  // width: 100%
+  // height: calc(100vh - var(--header-size))
+
+  .message
+    padding: 5px
+    background: rgb(255,255,255,0.8)
+    font-size: 12px
+    border-radius: 5px
+
+.typing
+  animation-name: dots
+  animation-duration: 2s
+  animation-iteration-count: infinite
+  animation-timing-function: ease-in-out
+  opacity: 0
+
+@keyframes dots
+  10%
+    opacity: 1
+
+#dot2
+  animation-delay: .3s
+
+#dot3
+  animation-delay: 0.6s
 
 .flex
   display: flex

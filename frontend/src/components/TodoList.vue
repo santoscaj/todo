@@ -4,12 +4,6 @@
 .mycontainer(ref="container" :class="{hover: hover, card:cardsStyle, tile:!cardsStyle}" @click="titleClicked()")
   .title
     input.title-input(v-model="todo.name" :disabled="!edit" @input="update()")
-    //- To add editable todo uncomment options below
-    //- .title-btns-area
-    //-   Button.mini-btn(v-if="!edit" ref="edit-btn" type="warning" size="small" @click.stop="changeEdit()" :class="{'bigger-btn':makeBtnBigger}")
-    //-     Icon(type="md-create")
-    //-   Button.mini-btn(v-if="edit" type="success" size="small" @click.stop="changeEdit()")
-    //-     Icon(type="md-checkmark")
     button.mini-btn#options(size="small" @click.stop="showMiniMenu()" :class="{'light-background': miniMenu}")
       Icon(type="md-more")
     .options(v-if="miniMenu")
@@ -24,7 +18,12 @@
       .space
       button.mini-btn.add-btn(@click="addItem()")
         Icon(type="md-add")
-    //- Input(type="textarea" :rows="10" v-model="draft.content" style="width: 200px" ) 
+    //- Input(type="textarea" :rows="10" v-model="draft.content" style="width: 200px" )
+  .usage-info(:style="{visibility: editingUser? 'visible': 'hidden'}")
+    p {{editingUser}} modifying this container 
+      span.typing#dot1 .
+      span.typing#dot2 .
+      span.typing#dot3 .
 
 </template>
 
@@ -40,11 +39,11 @@ import {emptyTodoItem} from '@/utils/emptyTodo'
 export default class TodoLists extends Vue {
   emptyTodoItem = emptyTodoItem()
 
+  @Prop( {type: String, default: ''}) editingUser
   @Prop( {type: Boolean, default: true}) debounce
-  @Prop( {type: Number, default: 5000}) debounceTimer
+  @Prop( {type: Number, default: 2000}) debounceTimer
   @Prop( {type: Boolean, default: false}) hover
   @Prop( {type: Boolean, default: true}) edit
-  @Prop( {type: String, default: 'List cant be modified at the moment' }) disabledMessage
   @Prop( {type: Boolean, default: true}) cardsStyle
   @Prop( {type: TodoList, default: emptyTodoItem}) todo
 
@@ -52,8 +51,16 @@ export default class TodoLists extends Vue {
   miniMenu=false
   selected=false
 
+  get disabledMessage(){
+    return this.isBeingEdited? 'Todolist is being edited and cannot be modified' : 'Todolist cant be modified at the moment'
+  }
+
   get displayBody(){
     return this.cardsStyle || this.selected
+  }
+
+  get isBeingEdited(){
+    return !!this.editingUser
   }
 
   // changeEdit(){
@@ -303,7 +310,11 @@ input
   // padding-right: 5px
 
 .todo-list-selected
-  height: calc(var(--card-height) - 20px)
+  height: calc(var(--card-height) - 29px)
+
+.usage-info
+  font-size: 10px
+  font-style: italic
 
 .todo-item
   padding: 0 3px

@@ -12,7 +12,7 @@ const jwt = require('jsonwebtoken')
 const crypto = require('crypto')
 const {sendUserPasswordEmail} = require('../utils/emailSender')
 const { getUserInfo } = require('../middleware')
-
+const {v4} = require('uuid')
 
 const SALT = Number(process.env.SALT)
 
@@ -21,25 +21,6 @@ function generateRandomPassword(numchars){
     let password = crypto.randomBytes(bytes).toString('hex')
     return password
 }
-
-router.post('/register-admin',async (req, res)=>{
-  let newUser = req.body
-  try{
-      let hashedPassword = await (bcrypt.hashSync(newUser.password, SALT))
-      newUser.password = hashedPassword
-      newUser.is_admin = true
-      let dbUser = await User.create(newUser)
-      let accessToken = jwt.sign({id: dbUser.id}, process.env.ACCESS_TOKEN_SECRET)
-      res.status(200).send({auth: true, accessToken, user: dbUser})
-  }catch(err){
-      let error = err.errors[0]
-      if(error.type==='notNull Violation')
-        return res.status(400).send(error.message)
-      else if(error.type==='unique violation')
-        return res.status(409).send(error.message)
-      return res.sendStatus(500)
-  }
-})
 
 router.post('/register',async (req, res)=>{
   let newUser = req.body
@@ -59,6 +40,11 @@ router.post('/register',async (req, res)=>{
         return res.status(409).send(error.message)
       return res.sendStatus(500)
   }
+})
+
+router.get('/session',async (req, res)=>{
+  let newSessionId = v4()
+  return res.send({id:newSessionId})
 })
 
 router.post('/users/:username/change_password', getUserInfo, async (req, res)=>{

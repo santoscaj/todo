@@ -39,9 +39,10 @@ export default class ShareSettings extends Vue{
             return 
         try{
             let response = await this.axiosGetRequest(config.server.SHARED_LISTS_URL, {todolist_id: this.listId})
-            this.sharedUsers = response.data.todolistuser
         }catch(e){
             console.error(e)
+            this.$Message.error('cannot share list at the moment')
+            this.confirmation()
         }
     }
 

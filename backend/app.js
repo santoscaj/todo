@@ -1,17 +1,26 @@
 const express = require('express')
+const app = express()
+const server = require('http').createServer(app)
+const io = require('socket.io')(server);
+
 const bodyParser = require('body-parser')
 const {cleanObject} = require('./middleware')
-const app = express()
 const cors = require('cors')
 const jwt = require('jsonwebtoken')
 const { User } = require('./sq')
+
+const socketConnections  = require('./sockets')(io)
+
+
+
+// server.listen(4000);
 
 //routes
 const router = require('./routes/index.js')
 const todolist = require('./routes/todolists.js')
 const user = require('./routes/users.js')
 
-const noLoginRequiredUrls =  ['/login', '/register', '/users/checkuser/', '/users/checkemail/', '/users/reset_password/']
+const noLoginRequiredUrls =  ['/login', '/register', '/users/checkuser/', '/users/checkemail/', '/users/reset_password/', '/session']
 
 async function authenticator(req, res, next){
     if(noLoginRequiredUrls.findIndex(url=>req.url.includes(url))>-1)
@@ -61,5 +70,8 @@ app.use(router)
 app.use(todolist)
 app.use(user)
 
-app.listen( process.env.PORT || 3000)
+const port = process.env.PORT || 3000
+server.listen( port, ()=>{
+    console.log(`listening on port ${port}`)
+})
 

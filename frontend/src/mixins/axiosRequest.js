@@ -24,6 +24,7 @@ export class AxiosGetRequest extends Vue{
         try{
             response = await axios.get(url)
         }catch(err){
+            throw err
             console.error(err)
         }
         return response

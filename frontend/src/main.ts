@@ -49,7 +49,7 @@ import Socket from '@/socket'
 Vue.config.productionTip = false;
 
 Vue.use(ViewUI);
-Vue.use(new Socket());
+// Vue.use(new Socket());
 
 export const myVue = new Vue({
   router,

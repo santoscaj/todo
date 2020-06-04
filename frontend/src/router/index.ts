@@ -148,11 +148,13 @@ function checkRedirect(to : Route, from: Route, user: User | null){
   if(user && accountIsActive){
     if(pageRequiresGuest || (pageRequiresAdmin && !userIsAdmin) || (!pageRequiresActiveAccount && accountIsActive))
       redirect = {name:'Todos', params:{username}}
-  }else if(user && !accountIsActive)
-      if(pageRequiresGuest || pageRequiresLogin)
-        redirect = {name:'AccountVerification'}
-  else if(!user && pageRequiresLogin)
-      redirect = {name:'Login'}
+  }else if(user && !accountIsActive){
+    if(pageRequiresGuest || pageRequiresLogin)
+      redirect = {name:'AccountVerification'}
+  }
+  else if(!user && pageRequiresLogin){
+    redirect = {name:'Login'}
+  }
 
   return redirect
 }
@@ -188,20 +190,20 @@ function goToNextPage(user:User | null, to:Route, from:Route, next:Function){
 }
 
 router.beforeEach((to, from, next)=>{
-  next()
+  // next()
 
   let activeUser = vxm.user.activeUser.id? vxm.user.activeUser : null
-
-  if( !activeUser && !vxm.user.pageLoaded){
-        const watch = vxm.user.$subscribe('setActiveUser', ()=>{
-        let activeUser = vxm.user.activeUser
-        goToNextPage(activeUser, to, from, next)
+  let localToken = localStorage.getItem('token')
+  if( !activeUser && !vxm.user.pageLoaded && localToken ){
+    const watch = vxm.user.$subscribe('setActiveUser', ()=>{
+      let activeUser = vxm.user.activeUser
+      goToNextPage(activeUser, to, from, next)
     })
-    next(false)
-    return
+    return next(false)
   }else{
     goToNextPage(activeUser, to, from, next)
   }
+
 })
 
 export default router;

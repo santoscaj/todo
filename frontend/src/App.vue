@@ -5,7 +5,7 @@
       Layout
         Sider(collapsible :collapsed-width="78" v-model="isCollapsed")
           SideBar(:isCollapsed.sync="isCollapsed")
-        Content(style="position:relative")
+        Content(style="position:relative" )
           transition(name="slide-left")
             router-view
           .block.login(v-if="false")
@@ -17,7 +17,7 @@
                 span.typing#dot3 .
         .block.session(v-if="duplicateSession")
           .message 
-            p You have logged in from a different computer.
+            p You have logged from a different computer.
             p Please refresh to log back in
               span.typing#dot1 .
               span.typing#dot2 .
@@ -34,6 +34,7 @@ import axios from 'axios'
 import {vxm, User } from './store'
 import config from './config'
 import {myRoutes} from './router'
+// import Socket from './socket'
 
 // console.log(socket)
 
@@ -42,6 +43,8 @@ import {myRoutes} from './router'
 })
 export default class App extends Vue {
   isCollapsed=false
+  // socket = new Socket()
+  socket = vxm.user.socket
 
   get connected(){
     //@ts-ignore
@@ -50,6 +53,23 @@ export default class App extends Vue {
   get duplicateSession(){
     //@ts-ignore
     return this.socket.isDuplicate
+  }
+
+  get userIsLoggedIn(){
+    return vxm.user.userIsLoggedIn
+  }
+
+  @Watch('userIsLoggedIn')
+  updateSocket(){
+    if(this.userIsLoggedIn){
+      let token = vxm.user.usertoken
+      let {id, username, email} = vxm.user.activeUser
+      //@ts-ignore
+      this.socket.connect({id, username, email, token})
+    }else{
+      //@ts-ignore
+      this.socket.disconnect()
+    }
   }
 
   get activeUser(){
@@ -64,19 +84,11 @@ export default class App extends Vue {
     return vxm.user.activeUser.account_is_active
   }
 
-  connectSocket(token : string){
-    let {id, username, email} = vxm.user.activeUser
-    this['socket'].login({id, username, email, token})
-  }
-
   async beforeCreate(){
     let token = localStorage.getItem('token')
     let sessionId = localStorage.getItem('sessionId')
     try{
       vxm.user.loadUser(token)
-      this.$nextTick()
-      if(vxm.user.userIsLoggedIn && token)
-        this.connectSocket(token)
     }catch(e){
       console.error(e)
       this.$router.push('/logout')

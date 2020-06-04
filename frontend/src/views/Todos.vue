@@ -8,7 +8,8 @@
         :todo="todo" 
         @update="updateList(todo.id)" 
         @change="listChanged({event: $event, id:todo.id})"
-        :edit="false"
+        @locklist="requestListLock()"
+        editingUser=""
         )
         ShareSettings( title="Share list settings" :value.sync="displayShared" :listId="sharedListId")
         .add-btn-area
@@ -42,6 +43,11 @@ export default class Todos extends Vue {
   displayShared=false
   sharedListId=0
 
+  get allTodosPlus(){
+    let listsBeingEdited = vxm.user.socket.listsBeingEdited
+    return this.allTodos.map(todo=>({...todo, userEditingList:listsBeingEdited[todo.id]||''}) )
+  }
+
   get activeUser(){
     return vxm.user.activeUser
   }
@@ -71,7 +77,7 @@ export default class Todos extends Vue {
   }
 
   get filteredTodos(){
-    return this.allTodos
+    return this.allTodosPlus
     .filter(list=>this.todoType=='all' || this.todoType==list.listType)
     .filter(list=> this.searchKeywordsAsRegex.every(keywordRegex=> keywordRegex.test(list.name) || list.todoitems.some(item=>keywordRegex.test(item.content))))
   }
@@ -91,6 +97,10 @@ export default class Todos extends Vue {
     }
     
     // this.todos = response.data
+  }
+
+  requestListLock(){
+    console.log('locking list')
   }
 
   addTodoList(){
@@ -174,8 +184,6 @@ export default class Todos extends Vue {
       this.listsWithErrors.push({listId: listId, error})
     }
   }
-
-
 
   async shareList(id){
     this.sharedListId = id

@@ -4,7 +4,7 @@ import { createModule, mutation, extractVuexModule, createProxy, action } from "
 import emptyUser from '@/utils/emptyUser'
 import axios from 'axios'
 import config from '@/config'
-
+import Socket from '@/socket'
 // const socket = io(config.server.BASE_SERVER_URL)
 
 // socket.on('connect', ( data )=>{
@@ -46,6 +46,7 @@ export interface User{
 }
 
 export class MyStore extends VuexModule{
+  socket = new Socket()
   activeUser : User = emptyUser()
   usertoken :string | null = null
   pageLoaded = false

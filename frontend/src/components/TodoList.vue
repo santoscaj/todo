@@ -20,7 +20,7 @@
         Icon(type="md-add")
     //- Input(type="textarea" :rows="10" v-model="draft.content" style="width: 200px" )
   .usage-info(:style="{visibility: editingUser? 'visible': 'hidden'}")
-    p {{editingUser}} modifying this container 
+    p {{editingUser}} modifying this todolsit 
       span.typing#dot1 .
       span.typing#dot2 .
       span.typing#dot3 .
@@ -43,13 +43,17 @@ export default class TodoLists extends Vue {
   @Prop( {type: Boolean, default: true}) debounce
   @Prop( {type: Number, default: 2000}) debounceTimer
   @Prop( {type: Boolean, default: false}) hover
-  @Prop( {type: Boolean, default: true}) edit
+  // @Prop( {type: Boolean, default: true}) edit
   @Prop( {type: Boolean, default: true}) cardsStyle
   @Prop( {type: TodoList, default: emptyTodoItem}) todo
 
   makeBtnBigger=false
   miniMenu=false
   selected=false
+
+  get edit(){
+    return !this.editingUser
+  }
 
   get disabledMessage(){
     return this.isBeingEdited? 'Todolist is being edited and cannot be modified' : 'Todolist cant be modified at the moment'
@@ -67,16 +71,64 @@ export default class TodoLists extends Vue {
   //   this.edit= !this.edit
   // }
 
-  debouncer(){    
+  lockListThrotle(){
+    let delay = 5000
+    let timeout = null
+    let runNext = false
+    
+    let callback = ()=>{
+      this.$emit('locklist')
+    }
+
+    let throtleFunction = function(){
+      if(!timeout){
+        callback()
+        runNext = false
+        timeout = setTimeout(function(){
+          timeout=null
+          if(runNext) 
+            throtleFunction()
+        }, delay)
+      }else{
+        runNext=true
+      }
+    }
+    return throtleFunction
+  }
+
+// function createThrotle(){
+// let run = false
+// let timeout = 0
+// let callback = ()=>{console.log('running at least once')}
+// const throtleFunction = ()=>{
+//     if(!timeout){
+//         callback()
+//         run=false
+//         timeout = setTimeout(()=>{
+//             timeout= null
+//             if(run) throtleFunction()
+
+//         },2000)
+//     }else{
+//         run=true
+//     }
+//  }
+// return throtleFunction
+// }
+
+
+  lockTodolist = this.lockListThrotle()
+  update = this.updateDebouncer()
+
+  updateDebouncer(){    
     let timeout = 0
     return function(){
+      this.lockTodolist()
       let timer = this.debounce ? this.debounceTimer : 0
       clearTimeout(timeout)
       timeout = setTimeout(()=>{this.$emit('update')}, timer)
     }
   }
-
-  update = this.debouncer()
 
   addItem(){
     this.update()
@@ -154,15 +206,6 @@ export default class TodoLists extends Vue {
       call: this.changeEvent('delete')
     },
   ]
-
-  // todo = {
-  //   id: 1, 
-  //   title: 'car brands',
-  //   todoitems: [
-  //     {         id:1,         completed: false,         content: 'tesla'       },       {         id:2,         completed: true,         content: 'honda'       },       {         id:3,         completed: false,         content: 'toyota'       },       {         id:4,         completed: false,         content: 'mazda'       },       {         id:5,         completed: false,         content: 'mercedes'       },       {         id:6,         completed: true,         content: 'skoda'       },             {         id:7,         completed: false,         content: 'mazda'       },       {         id:15,         completed: false,         content: 'mercedes'       },       {         id:61,         completed: true,         content: 'skoda'       },             {         id:14,         completed: false,         content: 'mazda'       },
-  //   ]
-  // }
-
 }
 </script>
 
@@ -201,7 +244,7 @@ input
     box-shadow:  0px 9px 8px -2px black hsla(0, 0%, 0%, 0.2)
 
 .card
-  padding: 0 3px 3px 3px 
+  padding: 0 5px 0px 5px 
   width: var(--card-width)
 
 .tile

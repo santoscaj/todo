@@ -3,12 +3,15 @@
     h3  {{title}}
     div(v-if="!errorOccurred")
       Input.search(v-model="search" icon="md-search" placeholder="Filter to-dos")
-      .cards-area
+      .cards-area(:class="{'grid-area':cardsStyle, 'horizontal-line':!cardsStyle}")
         TodoList(v-for="todo in filteredTodos" 
         :todo="todo" 
         @update="updateList(todo.id)" 
         @change="listChanged({event: $event, id:todo.id})"
-        @locklist="requestListLock()"
+        @locklist="requestListLock(todo.id)"
+        @releaselist="requestListRelease(todo.id)"
+        :cardsStyle="cardsStyle"
+        :hover="cardsHover"
         editingUser=""
         )
         ShareSettings( title="Share list settings" :value.sync="displayShared" :listId="sharedListId")
@@ -42,7 +45,9 @@ export default class Todos extends Vue {
   listsWithErrors = []
   displayShared=false
   sharedListId=0
-
+  cardsStyle=true
+  cardsHover=false
+  
   get allTodosPlus(){
     let listsBeingEdited = vxm.user.socket.listsBeingEdited
     return this.allTodos.map(todo=>({...todo, userEditingList:listsBeingEdited[todo.id]||''}) )
@@ -101,6 +106,10 @@ export default class Todos extends Vue {
 
   requestListLock(){
     console.log('locking list')
+  }
+
+  requestListRelease(){
+    console.log('releasing list')
   }
 
   addTodoList(){
@@ -262,7 +271,17 @@ export default class Todos extends Vue {
   display: flex
   flex-direction: column
 
-.cards-area
+.horizontal-line
+  // display: grid
+  // grid-template-columns: 1fr
+  // grid-template-rows: auto
+  // grid-gap: 20px
+  display: flex
+  flex-direction: column
+
+
+
+.grid-area
   position: relative
   display: grid
   width: 100%
@@ -272,9 +291,9 @@ export default class Todos extends Vue {
   grid-template-columns: repeat(auto-fill, minmax(var(--card-width), calc(var(--card-width) + 10px)))
   grid-gap: 20px
 
-.grid-block
-  padding: 3px
-  background: rgb(0,0,0,0.1)
+// .grid-block
+//   padding: 3px
+//   background: rgb(0,0,0,0.1)
 
 .title
   font-size: 13px

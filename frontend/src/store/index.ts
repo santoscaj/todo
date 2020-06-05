@@ -95,7 +95,16 @@ export class MyStore extends VuexModule{
     }
   }
 
+    // socket related actions
 
+  // @action socket_lockList(id:number){
+  //   this.socket.lockList(id)
+  // }
+
+  // @action socket_releaseList(id:number){
+  //   this.socket.releaseList(id)
+  // }
+  
 }
 
 export const store = new Vuex.Store({

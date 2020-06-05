@@ -1,7 +1,7 @@
 
 <template lang="pug">
 
-.mycontainer(ref="container" :class="{hover: hover, card:cardsStyle, tile:!cardsStyle}" @click="titleClicked()")
+.mycontainer(ref="container" :class="{hover: hover, card:cardsStyle, tile:!cardsStyle}" @click.stop="titleClicked()")
   .title
     input.title-input(v-model="todo.name" :disabled="!edit" @input="update()")
     button.mini-btn#options(size="small" @click.stop="showMiniMenu()" :class="{'light-background': miniMenu}")
@@ -19,7 +19,7 @@
       button.mini-btn.add-btn(@click="addItem()")
         Icon(type="md-add")
     //- Input(type="textarea" :rows="10" v-model="draft.content" style="width: 200px" )
-  .usage-info(:style="{visibility: editingUser? 'visible': 'hidden'}")
+  .usage-info(v-if="displayBody" :style="{visibility: editingUser? 'visible': 'hidden'}")
     p {{editingUser}} modifying this todolsit 
       span.typing#dot1 .
       span.typing#dot2 .
@@ -50,6 +50,7 @@ export default class TodoLists extends Vue {
   makeBtnBigger=false
   miniMenu=false
   selected=false
+  releaseDelay=3000
 
   get edit(){
     return !this.editingUser
@@ -67,63 +68,59 @@ export default class TodoLists extends Vue {
     return !!this.editingUser
   }
 
-  // changeEdit(){
-  //   this.edit= !this.edit
-  // }
-
-  lockListThrotle(){
-    let delay = 5000
+  mounted(){
+    let container = this.$refs.container
     let timeout = null
-    let runNext = false
-    
-    let callback = ()=>{
-      this.$emit('locklist')
-    }
-
-    let throtleFunction = function(){
-      if(!timeout){
-        callback()
-        runNext = false
-        timeout = setTimeout(function(){
-          timeout=null
-          if(runNext) 
-            throtleFunction()
-        }, delay)
-      }else{
-        runNext=true
-      }
-    }
-    return throtleFunction
+    let self = this
+    container.addEventListener('mouseenter', function(){
+      clearTimeout(timeout)
+    })
+    container.addEventListener('mouseleave', ()=>{
+      timeout = setTimeout(function(){
+        if(self.selected)
+          self.releaseList()
+      }, this.releaseDelay)})
   }
 
-// function createThrotle(){
-// let run = false
-// let timeout = 0
-// let callback = ()=>{console.log('running at least once')}
-// const throtleFunction = ()=>{
-//     if(!timeout){
-//         callback()
-//         run=false
-//         timeout = setTimeout(()=>{
-//             timeout= null
-//             if(run) throtleFunction()
+  // lockListThrotle(){
+  //   let delay = 5000
+  //   let timeout = null
+  //   let runNext = false
+    
+  //   let callback = ()=>{
+  //     this.$emit('locklist')
+  //   }
 
-//         },2000)
-//     }else{
-//         run=true
-//     }
-//  }
-// return throtleFunction
-// }
+  //   let throtleFunction = function(){
+  //     if(!timeout){
+  //       callback()
+  //       runNext = false
+  //       timeout = setTimeout(function(){
+  //         timeout=null
+  //         if(runNext) 
+  //           throtleFunction()
+  //       }, delay)
+  //     }else{
+  //       runNext=true
+  //     }
+  //   }
+  //   return throtleFunction
+  // }
 
-
-  lockTodolist = this.lockListThrotle()
+  // lockTodolist = this.lockListThrotle()
   update = this.updateDebouncer()
+  
+  
+  // lockReleaseList(){
+  //   if(!this.selected)
+  //     this.selected = true
+  //   this.waitRelease()
+  // }
 
   updateDebouncer(){    
     let timeout = 0
     return function(){
-      this.lockTodolist()
+      // this.lockTodolist()
       let timer = this.debounce ? this.debounceTimer : 0
       clearTimeout(timeout)
       timeout = setTimeout(()=>{this.$emit('update')}, timer)
@@ -153,7 +150,20 @@ export default class TodoLists extends Vue {
       this.todo.todoitems.splice(index, 1)
   }
 
+  releaseList(){
+    this.selected = false
+    this.miniMenu = false
+    this.$emit('releaselist')
+  }
+
+  lockList(){
+    this.selected = true
+    this.$emit('locklist')
+  }
+
   showMiniMenu(){
+    if(!this.selected)
+      this.titleClicked()
     let currentState = this.miniMenu
     this.miniMenu = !currentState
     if(!currentState)
@@ -162,6 +172,8 @@ export default class TodoLists extends Vue {
   }
 
   titleClicked(){
+    this.lockList()
+    window.addEventListener('click', this.releaseList, {once:true})
     if(!this.edit)
       this.$Message.error(this.disabledMessage)
   }
@@ -230,24 +242,27 @@ input
   background: rgb(0,0,0,0.1)
   color: black
   border: 1px solid black
+  *
+    cursor: pointer !important
 
 .hover
   border: 1px solid black
   box-shadow:  0px 12px 15px 1px 
   box-shadow:  0px 12px 15px 1px hsla(0, 0%, 0%, 0.2)
-  transition: all .3s ease
+  transition: transform .3s ease
   &:hover
     transform: translate(0, 2px)
     box-shadow:  0px 10px 7px -2px black
     box-shadow:  0px 8px 4px -2px black
-    box-shadow:  0px 9px 6px -2px black
-    box-shadow:  0px 9px 8px -2px black hsla(0, 0%, 0%, 0.2)
+    box-shadow:  0px 6px 8px -2px black hsla(0, 0%, 0%, 0.2)
+    box-shadow:  0px 4px 6px -2px black
 
 .card
   padding: 0 5px 0px 5px 
   width: var(--card-width)
 
 .tile
+  margin: 10px
   width: 100%
   overflow: visible
 
@@ -345,17 +360,18 @@ input
   line-height: 18px
 
 .todo-list
+  transition: height 0.4s ease-out !important
   height: 0
   width: 100%
   background: white
   overflow-y: auto
   overflow-x: hidden
-  // padding-right: 5px
 
 .todo-list-selected
   height: calc(var(--card-height) - 29px)
 
 .usage-info
+  // border-top: 1px solid black
   font-size: 10px
   font-style: italic
 

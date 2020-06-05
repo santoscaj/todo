@@ -40,6 +40,18 @@ export default class Socket {
         this.socketIO.emit('login', userData)
     }
 
+    lockList(id:number){
+        if(!id)
+            throw 'must specify list id to lock'
+        this.socketIO.emit('lock list', id)
+    }
+
+    releaseList(id:number){
+        if(!id)
+            throw 'must specify list id to release'
+        this.socketIO.emit('lock list', id)
+    }
+
     disconnect(userData: any){
         this.socketIO.disconnect()
     }

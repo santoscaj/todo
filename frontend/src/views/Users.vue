@@ -32,6 +32,8 @@ import axios from 'axios'
 import config from '@/config'
 import {AxiosGetRequestStatus, AxiosPutRequest, AxiosDeleteRequest} from '@/mixins/axiosRequest'
 import ErrorPage from '@/components/ErrorPage.vue'
+import {socket} from '@/socket'
+
 
 @Component({
   components: {ErrorPage},
@@ -104,6 +106,20 @@ export default class Users extends Vue{
     this.reloadPage()
   }
   
+  get pageName(){
+    let routeName = this.$route.name
+    let nameDividedByChild = routeName.split('-')
+    let pageName = nameDividedByChild[0]
+    return pageName
+  }
+
+  mounted(){
+    if(!vxm.user.userIsLoggedIn)
+      throw 'cannot lock page, no active user'
+    let username = vxm.user.activeUser.username
+    socket.lockPage({pageName: this.pageName, username})
+  }
+
   change(){
     this.reloadPage()
   }

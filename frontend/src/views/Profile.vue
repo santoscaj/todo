@@ -51,11 +51,14 @@ import axios from 'axios'
 import emptyUser from '@/utils/emptyUser'
 import ErrorPage from '@/components/ErrorPage.vue'
 import  { vxm } from '@/store'
+import {socket} from '@/socket'
+
 
 @Component({
   components: {ChangePassword, Welcome, ErrorPage},
   mixins: [AxiosGetRequestStatus, AxiosPutRequest, AxiosDeleteRequest]
 })
+
 export default class Profile extends Vue {
   edit = false
   display = false
@@ -69,6 +72,21 @@ export default class Profile extends Vue {
   get imageAvailable(){
     return Boolean(this.user.image_link)
   }
+
+  get pageName(){
+    let routeName = this.$route.name
+    let nameDividedByChild = routeName.split('-')
+    let pageName = nameDividedByChild[0]
+    return pageName
+  }
+
+  mounted(){
+    if(!vxm.user.userIsLoggedIn)
+      throw 'cannot lock page, no active user'
+    let username = vxm.user.activeUser.username
+    socket.lockPage({pageName: this.pageName, username})
+  }
+
 
   @Watch('user')
   onUserChange(val){

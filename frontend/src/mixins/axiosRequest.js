@@ -3,7 +3,7 @@ import {Component, Vue} from 'vue-property-decorator'
 import {vxm} from '@/store'
 import axios from 'axios'
 import config from '@/config'
-
+import {socket} from '@/socket'
 
 function getRoute(fullPath, params){
     if(!params) return fullPath 
@@ -15,6 +15,12 @@ function getRoute(fullPath, params){
     let newPath = config.server.BASE_SERVER_URL+path
 return newPath
 }
+
+
+function socketIsNotConnected(){
+    return !socket.isConnected
+}
+
 @Component
 export class AxiosGetRequest extends Vue{
 
@@ -57,6 +63,7 @@ export class AxiosGetRequestStatus extends Vue{
 @Component
 export class AxiosPutRequest extends Vue{
     async axiosPutRequest(url, params, data, messageOnSuccess=null){
+        if(socketIsNotConnected()) return this.$Message.error('cannot save, not connected')
         url = getRoute(url, params)
         let response = null
         try{
@@ -75,6 +82,8 @@ export class AxiosPutRequest extends Vue{
 @Component
 export class AxiosDeleteRequest extends Vue{
     async axiosDeleteRequest(url, params, data ){
+        if(socketIsNotConnected()) return this.$Message.error('cannot save, not connected')
+
         url = getRoute(url, params)
         let response = null
         try{
@@ -90,6 +99,7 @@ export class AxiosDeleteRequest extends Vue{
 @Component
 export class AxiosPostRequest extends Vue{
     async axiosPostRequest(url, params, data ){
+        if(socketIsNotConnected()) return this.$Message.error('cannot save, not connected')
         url = getRoute(url, params)
         let response = null
         try{

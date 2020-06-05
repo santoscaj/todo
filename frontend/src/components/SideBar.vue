@@ -63,7 +63,7 @@ export default class SideBar extends Vue{
       children: [
         {
           display: 'Favorites',
-          linkTo: {name: 'SpecificTodoLists', params: {username: this.activeUser.username, list:'favorites'}},
+          linkTo: {name: 'Todos-Favorites', params: {username: this.activeUser.username }},
           iconType: "md-heart",
           show: this.login,
           spanShow: !this.isCollapsed, 
@@ -71,7 +71,7 @@ export default class SideBar extends Vue{
         },
         {
           display: 'My Todos',
-          linkTo: {name: 'SpecificTodoLists', params: {username: this.activeUser.username, list:'owned'}},
+          linkTo: {name: 'Todos-Owned', params: {username: this.activeUser.username }},
           iconType: "md-star",
           show: this.login,
           spanShow: !this.isCollapsed, 
@@ -79,7 +79,7 @@ export default class SideBar extends Vue{
         },
         {
           display: 'Shared with me',
-          linkTo: {name: 'SpecificTodoLists', params: {username: this.activeUser.username, list:'shared'}},
+          linkTo: {name: 'Todos-Shared', params: {username: this.activeUser.username }},
           iconType: "md-swap",
           show: this.login,
           spanShow: !this.isCollapsed, 

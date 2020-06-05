@@ -55,19 +55,47 @@ const routes: RouteConfig[] = [
     meta:{
       requiresAuth: true,
       requiresActiveAccount: true,
-      pageTitle: 'User to-do lists'
-    }
+      pageTitle: 'User to-do lists',
+      list: 'all',
+    },
+    children:[
+      {
+        path: 'favorites',
+        name: 'Todos-Favorites',
+        meta:{
+          list: 'favorites',
+          pageTitle: 'User to-do lists'
+        }
+      },
+      {
+        path: 'owned',
+        name: 'Todos-Owned',
+        meta:{
+          list: 'owned',
+          pageTitle: 'User to-do lists'
+        }
+      },
+      {
+        path: 'shared',
+        name: 'Todos-Shared',
+        meta:{
+          list: 'shared',
+          pageTitle: 'User to-do lists'
+        }
+        // component: Todos
+      }
+    ]
   },
-  {
-    path: '/users/:username/todos/:list',
-    name: 'SpecificTodoLists',
-    component: Todos,// () => import('../views/Todos.vue'),
-    meta:{
-      requiresAuth: true,
-      requiresActiveAccount: true,
-      pageTitle: 'User to-do lists'
-    }
-  },
+  // {
+  //   path: '/users/:username/todos/:list',
+  //   name: 'SpecificTodoLists',
+  //   component: Todos,// () => import('../views/Todos.vue'),
+  //   meta:{
+  //     requiresAuth: true,
+  //     requiresActiveAccount: true,
+  //     pageTitle: 'User to-do lists'
+  //   }
+  // },
   {
     path: '/users/:username',
     name: 'Profile',

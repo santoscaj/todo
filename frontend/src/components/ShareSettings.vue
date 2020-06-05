@@ -57,7 +57,10 @@ export default class ShareSettings extends Vue{
         }catch(e){
             if(e.response.status && e.response.status==409)
                 this.$Message.error("Couldn't share. User already has access to this list")
-            console.dir(e)
+            else if(e.response.status && e.response.status==404)
+                this.$Message.error("User not found in DB")
+            else 
+                console.dir(e)
         }
 
     }

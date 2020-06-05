@@ -12,7 +12,7 @@ let lockedPages = [{
     pageName: '',
     username: '',
     socketId: ''
-}]        
+}]      
 
 function removeEverythingLockedBySocket(socketId){    
     lockedLists = lockedLists.filter(item=>item.socketId !=socketId)
@@ -23,7 +23,7 @@ function lockList(listData){
     if(!listData.listId || !listData.username || !listData.socketId)
         return console.error('ERROR! one or more lockedList datafields are missing')
     let connectionIndex = activeConnections.findIndex(connection=>connection.id==listData.socketId)
-    if(conenctionIndex == -1)
+    if(connectionIndex == -1)
         return console.error(`ERROR! socket ${listData.socketId} attempted to lock a list but it was no active connections`)
     let lockedListIndex = lockedLists.findIndex(list=>list.listId==listData.listId)
     if(lockedListIndex==-1)
@@ -54,7 +54,9 @@ function lockPageForUser(pageData){
 }
 
 function releasePageForUser(pageData){
-
+    let index = lockedLists.indexOf(listData)
+    if(index>-1)
+        lockedLists.splice(index, 1)
 }
 
 function disconnectSockets(sockets, event){
@@ -100,7 +102,6 @@ module.exports = function(io){
         console.log(`Connected socket ${socket.id}! active connections ${io.sockets.clients()}`)
         
         // socket functions 
-
         socket.on('disconnect', function(){
             let index = activeConnections.indexOf(socket)
             activeConnections.splice(index, 1)

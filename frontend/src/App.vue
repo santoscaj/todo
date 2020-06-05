@@ -8,51 +8,37 @@
         Content(style="position:relative" )
           transition(name="slide-left")
             router-view
-          .block.login(v-if="false")
-            .message 
-              p This page is being edited on a different session.
-              p Please wait until editing is complete 
-                span.typing#dot1 .
-                span.typing#dot2 .
-                span.typing#dot3 .
-        .block.session(v-if="duplicateSession")
-          .message 
-            p You have logged from a different computer.
-            p Please refresh to log back in
-              span.typing#dot1 .
-              span.typing#dot2 .
-              span.typing#dot3 .
-
-
+        BlockPage(v-if="duplicateSession" message="You have logged from a different computer\nPlease refresh to log back in")
 </template>
 
 <script lang="ts">
 import { Component, Vue, Watch } from 'vue-property-decorator';
 import Header from './components/Header.vue';
 import SideBar from './components/SideBar.vue';
+import BlockPage from './components/BlockPage.vue';
 import axios from 'axios'
 import {vxm, User } from './store'
 import config from './config'
 import {myRoutes} from './router'
-// import Socket from './socket'
+import {socket} from './socket'
 
 // console.log(socket)
 
 @Component({
-  components: { Header, SideBar}
+  components: { Header, SideBar, BlockPage}
 })
 export default class App extends Vue {
   isCollapsed=false
   // socket = new Socket()
-  socket = vxm.user.socket
+  // socket = vxm.user.socket
 
   get connected(){
     //@ts-ignore
-    return this.socket.isConnected
+    return socket.isConnected
   }
   get duplicateSession(){
     //@ts-ignore
-    return this.socket.isDuplicate
+    return socket.isDuplicate
   }
 
   get userIsLoggedIn(){
@@ -65,10 +51,10 @@ export default class App extends Vue {
       let token = vxm.user.usertoken
       let {id, username, email} = vxm.user.activeUser
       //@ts-ignore
-      this.socket.connect({id, username, email, token})
+      socket.connect({id, username, email, token})
     }else{
       //@ts-ignore
-      this.socket.disconnect()
+      socket.disconnect()
     }
   }
 
@@ -147,42 +133,42 @@ body
   &>*
     margin-left: 8px
 
-.block
-  position: absolute
-  background: rgb(0,0,0,0.2)
-  display: flex
-  justify-content: center
-  align-items: center
+// .block
+//   position: absolute
+//   background: rgb(0,0,0,0.2)
+//   display: flex
+//   justify-content: center
+//   align-items: center
 
-  top: 0
-  bottom: 0
-  left: 0
-  right: 0
-  // width: 100%
-  // height: calc(100vh - var(--header-size))
+//   top: 0
+//   bottom: 0
+//   left: 0
+//   right: 0
+//   // width: 100%
+//   // height: calc(100vh - var(--header-size))
 
-  .message
-    padding: 5px
-    background: rgb(255,255,255,0.8)
-    font-size: 12px
-    border-radius: 5px
+//   .message
+//     padding: 5px
+//     background: rgb(255,255,255,0.8)
+//     font-size: 12px
+//     border-radius: 5px
 
-.typing
-  animation-name: dots
-  animation-duration: 2s
-  animation-iteration-count: infinite
-  animation-timing-function: ease-in-out
-  opacity: 0
+// .typing
+//   animation-name: dots
+//   animation-duration: 2s
+//   animation-iteration-count: infinite
+//   animation-timing-function: ease-in-out
+//   opacity: 0
 
-@keyframes dots
-  10%
-    opacity: 1
+// @keyframes dots
+//   10%
+//     opacity: 1
 
-#dot2
-  animation-delay: .3s
+// #dot2
+//   animation-delay: .3s
 
-#dot3
-  animation-delay: 0.6s
+// #dot3
+//   animation-delay: 0.6s
 
 .flex
   display: flex
@@ -192,7 +178,7 @@ body
 
 .ivu-layout-content, .ivu-input
   font-size: 11px !important
-  padding: 40px
+  padding: 20px
   height: auto !important
   max-height: calc(100vh - var(--header-size)) !important
 

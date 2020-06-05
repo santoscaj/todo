@@ -1,8 +1,20 @@
 <template lang="pug">
   div 
+    BlockPage(v-if="pageLockedToThisSession" message="This page is being edited in a different session.\nPlease wait until editing is complete")
     h3  {{title}}
     div(v-if="!errorOccurred")
-      Input.search(v-model="search" icon="md-search" placeholder="Filter to-dos")
+      .search-area
+        .group-button-area View Mode 
+          Button(size="small" @click="cardsStyle=true")
+            Icon(type="md-apps")
+          Button(size="small" @click="cardsStyle=false")
+            Icon(type="md-list")
+          Button(size="small" @click="cardsHover=true")
+            Icon(type="md-arrow-up")
+          Button(size="small" @click="cardsHover=false")
+            Icon(type="md-arrow-down")
+        .spacer
+        Input.search(v-model="search" icon="md-search" placeholder="Filter to-dos")
       .cards-area(:class="{'grid-area':cardsStyle, 'horizontal-line':!cardsStyle}")
         TodoList(v-for="todo in filteredTodos" 
         :todo="todo" 
@@ -29,13 +41,14 @@ import {vxm} from '@/store'
 import axios from 'axios'
 import ErrorPage from '@/components/ErrorPage.vue'
 import TodoList from '@/components/TodoList.vue'
+import BlockPage from '@/components/BlockPage.vue'
 import ShareSettings from '@/components/ShareSettings.vue'
 import {AxiosGetRequestStatus, AxiosPutRequest, AxiosDeleteRequest} from '@/mixins/axiosRequest'
 import {v4} from 'uuid'
 import {emptyTodoList} from '@/utils/emptyTodo'
+import {socket} from '@/socket'
 
-
-@Component({components:{ErrorPage, TodoList, ShareSettings},  mixins: [AxiosGetRequestStatus, AxiosPutRequest, AxiosDeleteRequest]} )
+@Component({components:{ErrorPage, TodoList, ShareSettings, BlockPage},  mixins: [AxiosGetRequestStatus, AxiosPutRequest, AxiosDeleteRequest]} )
 export default class Todos extends Vue {
   user = null
   search=''
@@ -46,11 +59,15 @@ export default class Todos extends Vue {
   displayShared=false
   sharedListId=0
   cardsStyle=true
-  cardsHover=false
+  cardsHover=true
   
   get allTodosPlus(){
-    let listsBeingEdited = vxm.user.socket.listsBeingEdited
+    let listsBeingEdited = socket.listsBeingEdited
     return this.allTodos.map(todo=>({...todo, userEditingList:listsBeingEdited[todo.id]||''}) )
+  }
+
+  get pageLockedToThisSession(){
+    return socket[this.pageName]
   }
 
   get activeUser(){
@@ -58,9 +75,7 @@ export default class Todos extends Vue {
   }
   
   get todoType(){
-    if(!this.$route.params.list)
-      return 'all'
-    return this.$route.params.list
+    return this.$route.meta.list
   }
 
   get title(){
@@ -103,13 +118,31 @@ export default class Todos extends Vue {
     
     // this.todos = response.data
   }
+  
+  get pageName(){
+    let routeName = this.$route.name
+    let nameDividedByChild = routeName.split('-')
+    let pageName = nameDividedByChild[0]
+    return pageName
+  }
 
-  requestListLock(){
-    console.log('locking list')
+  mounted(){
+    if(!vxm.user.userIsLoggedIn)
+      throw 'cannot lock page, no active user'
+    let username = this.activeUser.username
+    socket.lockPage({pageName: this.pageName, username})
+  }
+
+  requestListLock(listId){
+    if(!vxm.user.userIsLoggedIn)
+      throw 'cannot lock list, no active user'
+    let username = this.activeUser.username
+    socket.lockList(listId, username) 
   }
 
   requestListRelease(){
-    console.log('releasing list')
+    let username = this.activeUser.username
+    socket.lockList(listId, username) 
   }
 
   addTodoList(){
@@ -129,6 +162,8 @@ export default class Todos extends Vue {
   created(){
     this.getUserInformation()
   }
+
+
 
   // handles errors
   foundListErrors(list){
@@ -279,8 +314,6 @@ export default class Todos extends Vue {
   display: flex
   flex-direction: column
 
-
-
 .grid-area
   position: relative
   display: grid
@@ -337,9 +370,21 @@ export default class Todos extends Vue {
     color: gray
     border: 1.5px dashed gray
 
+.search-area
+  display: flex
+  align-items: center
+  justify-content: center
+  margin: 0 0 20px 0
+
+.group-button-area
+  flex: 0 0 auto
+
+.spacer
+  flex: 1 2 auto
+
 .search
-  max-widtH: 800px
-  padding: 0 0 20px 0
+  max-widtH: 500px
+  // padding: 0 0 20px 0
 
 .apply-discard-changes
   padding: 20px

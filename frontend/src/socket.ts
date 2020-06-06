@@ -3,29 +3,7 @@ import config from '@/config'
 import io from 'socket.io-client'
 import Vue from  'vue'
 import {vxm} from './store'
-// const socket = io(config.server.BASE_SERVER_URL)
 
-// socket.on('connect', function(){
-//     console.log('connected')
-// })
-
-// socket.on('disconnect', function(){
-//     console.log('disconnected')
-// })
-
-
-
-// const Socket = {
-//     install: function(Vue: any){
-//         Vue.prototype.$socket = socket
-
-//         Vue.prototype.socket = {
-//             isConnected: false
-//         }
-//     }
-// }
-
-// export default Socket
 
 export default class Socket {
     socketIO : any
@@ -34,8 +12,8 @@ export default class Socket {
     isDuplicate = false
     lockPages = {
         'Todos' : false,
-        'Todos' : false,
-        'Todos' : false,
+        'Profile' : false,
+        'Users' : false,
     }
 
     connect(userData: any){
@@ -46,7 +24,9 @@ export default class Socket {
     }
 
     lockPage(pageName:string, username:string){
-
+        if(!pageName || !username)
+            throw 'must specify page name and username to lock'
+        this.socketIO.emit('lock page', {pageName, username})
     }
 
     lockList(listId:number, username: string){
@@ -54,6 +34,7 @@ export default class Socket {
             throw 'must specify list id and username to lock'
         this.socketIO.emit('lock list', {listId, username})
     }
+    
     releaseList(listId:number, username: string){
         if(!listId || !username)
             throw 'must specify list id and username to release2'
@@ -74,7 +55,6 @@ export default class Socket {
         
         this.socketIO.on('disconnect',()=> {
             this.isConnected = false
-            console.log('disconnecting socket ')
         })
 
         this.socketIO.on('duplicate',()=> {
@@ -82,7 +62,12 @@ export default class Socket {
             window.localStorage.removeItem('token')
             window.localStorage.removeItem('username')
             vxm.user.logout()
-            console.log('duplicate homeboy')
+        })
+
+        this.socketIO.on('lock page',(data: any)=> {
+            let {pageName, socketId} = data
+            //@ts-ignore
+            this.lockPages[pageName] = socketId != this.socketIO.id
         })
     }
 }

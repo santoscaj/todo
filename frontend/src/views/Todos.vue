@@ -130,7 +130,7 @@ export default class Todos extends Vue {
     if(!vxm.user.userIsLoggedIn)
       throw 'cannot lock page, no active user'
     let username = this.activeUser.username
-    socket.lockPage({pageName: this.pageName, username})
+    socket.lockPage(this.pageName, username)
   }
 
   requestListLock(listId){

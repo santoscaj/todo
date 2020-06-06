@@ -129,12 +129,12 @@ module.exports = function(io){
         
         socket.on('lock page', (data)=>{
             let lockedData = {...data, socketId:socket.id}
-            lockPage(lockedData)
+            lockPageForUser(lockedData)
         })
 
         socket.on('release page', (data)=>{
             let releaseData = {...data, socketId:socket.id}
-            releasePage(releaseData)
+            releasePageForUser(releaseData)
         })
     });
 }

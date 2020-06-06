@@ -84,7 +84,7 @@ export default class Profile extends Vue {
     if(!vxm.user.userIsLoggedIn)
       throw 'cannot lock page, no active user'
     let username = vxm.user.activeUser.username
-    socket.lockPage({pageName: this.pageName, username})
+    socket.lockPage(this.pageName, username)
   }
 
 

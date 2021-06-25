@@ -1,0 +1,29 @@
+version: "2.9"
+
+services:
+
+  backend:
+    build: backend/
+    networks: 
+      - backend-network
+    depends_on: 
+      - database
+  
+  menapage: 
+    build: frontend/menapage
+    restart: unless-stopped
+    ports: 
+      - 80:8080
+    depends_on: 
+      - backend
+
+  adminpage:
+    build: frontend/adminpage
+    restart: unless-stopped
+    ports: 
+      - 8080:8080
+    depends_on: 
+      - backend
+
+networks:
+  backend-network:

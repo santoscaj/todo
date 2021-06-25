@@ -1,5 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import {vxm} from './store'
+
+require('dotenv').config()
 interface Server{
     BASE_SERVER_URL : string;
     LOGIN_URL:string;
@@ -34,8 +36,8 @@ interface Config{
     client: Client
 }
 
-let BASE_SERVER_URL:string="http://localhost:3000"
-let BASE_CLIENT_URL:string="http://localhost:8080"
+let BASE_SERVER_URL: string= process.env.VUE_APP_TODO_SERVER_URL ||  "http://localhost:3000"
+let BASE_CLIENT_URL: string= process.env.VUE_APP_TODO_CLIENT_URL || "http://localhost:8080"
 
 const server :Server ={
     BASE_SERVER_URL : BASE_SERVER_URL,

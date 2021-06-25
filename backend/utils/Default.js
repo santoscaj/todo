@@ -35,7 +35,7 @@ const users = [
     },{
     userData:{
         username: "cuzox",
-        email: "calevime@gmail.com",
+        email: "san.toscaj@gmail.com",
         password: "$2b$05$K4gfqQFpfEugiH.vQBOp7uTkyvB4AYZhMh8Ydw2wakB5cspXhi60O",
         is_admin: false,
         account_is_active: true,

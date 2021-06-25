@@ -23,8 +23,13 @@ const myLoggingFunction = function(message){
 //   }
 // }
 
-const sequelize = new Sequelize('todos_db','postgres','admin',{
-    host: 'localhost',
+const databaseIpAddress = 'database'
+const database = 'todos_db';
+const username = 'postgres';
+const password = 'berto';
+
+const sequelize = new Sequelize(database,username,password,{
+    host: databaseIpAddress,
     dialect: 'postgres',
     logging: myLoggingFunction
 })

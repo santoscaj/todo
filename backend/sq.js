@@ -1,8 +1,8 @@
 require('dotenv').config()
-const bcrypt = require('bcrypt')
+// const bcrypt = require('bcrypt')
 const Sequelize = require('sequelize')
 const { users} = require('./utils/Default')
-const isEmail = require('validator/lib/isEmail')
+// const isEmail = require('validator/lib/isEmail')
 
 const myLoggingFunction = function(message){
   let cyanColor = '\x1b[36m%s\x1b[0m'

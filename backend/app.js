@@ -22,7 +22,7 @@ const user = require('./routes/users.js')
 
 const noLoginRequiredUrls =  ['/login', '/register', '/users/checkuser/', '/users/checkemail/', '/users/reset_password/', '/session']
 
-async function authenticator(req, res, next){
+async function authenticateUser(req, res, next){
     if(noLoginRequiredUrls.findIndex(url=>req.url.includes(url))>-1)
         next()
     else{
@@ -84,7 +84,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.use(dataCleaner)
-app.use(authenticator)
+app.use(authenticateUser)
 
 app.use(router)
 app.use(todolist)

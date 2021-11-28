@@ -1,24 +1,25 @@
 const nodemailer = require('nodemailer')
 const fs = require('fs')
 const handlebars = require('handlebars')
+const crypto = require('crypto')
 require('dotenv').config()
+
 
 const TEMP_PASS_TEMPLATE = __dirname+'/tempPass.html'
 const EMAIL_VERIFICATION_TEMPLATE = __dirname+'/emailVerification.html'
 
-let serverEmailAccount = process.env.EMAIL_ACCOUNT
-
 let transporter = nodemailer.createTransport({
-    service: 'Gmail',
+    host: 'smtp.zoho.com',
+    port: 465,
     auth: {
-        user: serverEmailAccount,
+        user: process.env.EMAIL_ACCOUNT,
         pass: process.env.EMAIL_PASSWORD,
     }
 })
 
 function emailOptions(subject, email){
     return {
-        from: serverEmailAccount,
+        from: process.env.EMAIL_ACCOUNT,
         to: email,
         subject
     }
@@ -29,6 +30,12 @@ function sendEmail(options){
         if(!error) return true
         console.error(error)
     })
+}
+
+function generateRandomPassword(numchars){
+    let bytes = numchars / 2
+    let password = crypto.randomBytes(bytes).toString('hex')
+    return password
 }
 
 function configureEmail(fileToRead, subject, email, variables){

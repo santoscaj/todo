@@ -9,18 +9,11 @@ const router = express.Router()
 const {User } = require('../sq')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
-const crypto = require('crypto')
-const {sendUserPasswordEmail} = require('../utils/emailSender')
+const {sendUserPasswordEmail, sendUserVerificationEmail, generateRandomPassword} = require('../utils/emailSender')
 const { getUserInfo } = require('../middleware')
 const {v4} = require('uuid')
 
 const SALT = Number(process.env.SALT)
-
-function generateRandomPassword(numchars){
-    let bytes = numchars / 2
-    let password = crypto.randomBytes(bytes).toString('hex')
-    return password
-}
 
 router.post('/register',async (req, res)=>{
   let newUser = req.body
@@ -31,6 +24,7 @@ router.post('/register',async (req, res)=>{
       let accessToken = jwt.sign({id: user.id}, process.env.ACCESS_TOKEN_SECRET)
       res.status(200).send({auth: true, accessToken, user})
   }catch(err){
+      console.log(err)
       let error = err.errors[0]
       if(err.message = 'Validation error: Validation isEmail on email failed')
         return res.status(400).send('Email field not in expected format')

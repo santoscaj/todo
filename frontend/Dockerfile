@@ -1,6 +1,6 @@
 FROM node:16-alpine3.13
 
-ENV VUE_APP_TODO_SERVER_URL='http://localhost:3000'
+ENV VUE_APP_TODO_SERVER_URL='http://localhost:4000'
 ENV VUE_APP_TODO_CLIENT_URL='http://localhost:8080'
 
 WORKDIR /app

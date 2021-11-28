@@ -35,7 +35,7 @@ interface Config{
     server: Server;
     client: Client
 }
-
+console.log(process.env.VUE_APP_TODO_SERVER_URL, process.env.VUE_APP_TODO_CLIENT_URL)
 let BASE_SERVER_URL: string= process.env.VUE_APP_TODO_SERVER_URL ||  "http://localhost:3000"
 let BASE_CLIENT_URL: string= process.env.VUE_APP_TODO_CLIENT_URL || "http://localhost:8080"
 

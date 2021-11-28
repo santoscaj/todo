@@ -5,8 +5,8 @@
 
 const users = [
     {userData:{
-        username: "santoscaj",
-        email: "santoscaj@yahoo.com",
+        username: "alberto",
+        email: "guest@santoscaj.com",
         password: "$2b$05$K4gfqQFpfEugiH.vQBOp7uTkyvB4AYZhMh8Ydw2wakB5cspXhi60O",
         is_admin: false,
         account_is_active: true,
@@ -34,8 +34,8 @@ const users = [
         }]
     },{
     userData:{
-        username: "cuzox",
-        email: "san.toscaj@gmail.com",
+        username: "user1",
+        email: "user1@santosaj.com",
         password: "$2b$05$K4gfqQFpfEugiH.vQBOp7uTkyvB4AYZhMh8Ydw2wakB5cspXhi60O",
         is_admin: false,
         account_is_active: true,
@@ -67,7 +67,7 @@ const users = [
     {
     userData:{
         username: "admin",
-        email: "santoscaj@gmail.com",
+        email: "admin@santosaj.com",
         password: "$2b$05$boJXqB9QXp.QKx.7qrTo0.zQViQbKznUPVkMuLJrQb5NY7f3DWK1G",
         is_admin: true,
         account_is_active: true,
@@ -151,8 +151,8 @@ const users = [
     },
     {
         userData:{
-            username: "james",
-            email: "santosc.aj@gmail.com",
+            username: "user2",
+            email: "user2@santosaj.com",
             password: "$2b$05$K4gfqQFpfEugiH.vQBOp7uTkyvB4AYZhMh8Ydw2wakB5cspXhi60O",
             is_admin: false,
             account_is_active: false,

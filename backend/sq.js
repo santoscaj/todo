@@ -23,8 +23,10 @@ const myLoggingFunction = function(message){
 //   }
 // }
 
-const databaseIpAddress = 'database'
-const database = 'todos_db';
+// const databaseIpAddress = 'database'
+const databaseIpAddress = 'localhost'
+// const database = 'todos_db';
+const database = 'postgres';
 const username = 'postgres';
 const password = 'berto';
 

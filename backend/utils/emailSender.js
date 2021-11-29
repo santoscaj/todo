@@ -3,6 +3,7 @@ const fs = require('fs')
 const handlebars = require('handlebars')
 const crypto = require('crypto')
 require('dotenv').config()
+const {expirationInMins} = require('../redis')
 
 
 const TEMP_PASS_TEMPLATE = __dirname+'/tempPass.html'
@@ -38,6 +39,15 @@ function generateRandomPassword(numchars){
     return password
 }
 
+function generateRandomDigits(numchars){
+    let code = ""
+    while(code.length<numchars){
+        code += Math.floor(Math.random(5)*10)
+    }
+    return code
+}
+
+
 function configureEmail(fileToRead, subject, email, variables){
     let options = emailOptions(subject, email)
     
@@ -47,17 +57,15 @@ function configureEmail(fileToRead, subject, email, variables){
         let html = renderer(variables)   
         options.html = html
         sendEmail(options)
-        
     })
 }
-
 
 function sendUserPasswordEmail(user, password){
     configureEmail(TEMP_PASS_TEMPLATE, 'Temporary Password', user.email, {username: user.username, password})
 }
 
 function sendUserVerificationEmail(user, code){
-    configureEmail(EMAIL_VERIFICATION_TEMPLATE, 'Verification Code', user.email, {username: user.username, code})
+    configureEmail(EMAIL_VERIFICATION_TEMPLATE, 'Verification Code', user.email, {username: user.username, code, expiration:expirationInMins})
 }
 
-module.exports = {sendUserPasswordEmail, sendUserVerificationEmail}
+module.exports = {sendUserPasswordEmail, sendUserVerificationEmail, generateRandomPassword, generateRandomDigits}

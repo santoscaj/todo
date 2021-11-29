@@ -1,6 +1,5 @@
 
 import {Component, Vue} from 'vue-property-decorator'
-import {vxm} from '@/store'
 import axios from 'axios'
 import config from '@/config'
 import {socket} from '@/socket'

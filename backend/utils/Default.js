@@ -7,7 +7,7 @@ const users = [
     {userData:{
         username: "alberto",
         email: "guest@santoscaj.com",
-        password: "$2b$05$K4gfqQFpfEugiH.vQBOp7uTkyvB4AYZhMh8Ydw2wakB5cspXhi60O",
+        password: "$2a$09$rrB9ukMhfFTKUcaa271l.eIPCfWWDqJ..Wg3iO/bp6zOailgJlAsK",
         is_admin: false,
         account_is_active: true,
         firstName: "",
@@ -36,7 +36,7 @@ const users = [
     userData:{
         username: "user1",
         email: "user1@santosaj.com",
-        password: "$2b$05$K4gfqQFpfEugiH.vQBOp7uTkyvB4AYZhMh8Ydw2wakB5cspXhi60O",
+        password: "$2a$09$omGRlZIipEA1JZh5HgAT5emZhlv5.wChgWmSJGyVUf3XoPQCu6xB2",
         is_admin: false,
         account_is_active: true,
         firstName: "",
@@ -68,7 +68,7 @@ const users = [
     userData:{
         username: "admin",
         email: "admin@santosaj.com",
-        password: "$2b$05$boJXqB9QXp.QKx.7qrTo0.zQViQbKznUPVkMuLJrQb5NY7f3DWK1G",
+        password: "$2a$09$9lBwGoY99/iiF42IZk2QFulhBSOMDIPO3.pjzVOi24dnM32QQ2TgG",
         is_admin: true,
         account_is_active: true,
         firstName: "",
@@ -153,7 +153,7 @@ const users = [
         userData:{
             username: "user2",
             email: "user2@santosaj.com",
-            password: "$2b$05$K4gfqQFpfEugiH.vQBOp7uTkyvB4AYZhMh8Ydw2wakB5cspXhi60O",
+            password: "$2a$09$xtfscBFKB3LOeinVUoQEqOLVnos1h8TD1G0sD1BGqNgeHSiECy83O",
             is_admin: false,
             account_is_active: false,
             firstName: "The Cable",

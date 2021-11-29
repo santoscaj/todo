@@ -20,7 +20,7 @@ const router = require('./routes/index.js')
 const todolist = require('./routes/todolists.js')
 const user = require('./routes/users.js')
 
-const noLoginRequiredUrls =  ['/login', '/register', '/users/checkuser/', '/users/checkemail/', '/users/reset_password/', '/session']
+const noLoginRequiredUrls =  ['/login', '/register', '/users/checkuser/', '/users/checkemail/', '/users/verify_code/','/users/send_verification_code/','/users/reset_password/', '/session']
 
 async function authenticateUser(req, res, next){
     if(noLoginRequiredUrls.findIndex(url=>req.url.includes(url))>-1)

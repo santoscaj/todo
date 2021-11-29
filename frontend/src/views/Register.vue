@@ -23,11 +23,11 @@ import {validatePass, validatePassCheck, validateUnique} from '@/utils/validatio
 import  { Component, Vue } from 'vue-property-decorator'
 import  { vxm } from '@/store'
 import  axios from 'axios'
-import  {AxiosGetRequestStatus, AxiosGetRequest} from '@/mixins/axiosRequest'
+import  {AxiosGetRequestStatus, AxiosGetRequest,AxiosPostRequest} from '@/mixins/axiosRequest'
 import  config from '@/config'
 
 @Component({
-  mixins: [AxiosGetRequestStatus, AxiosGetRequest]
+  mixins: [AxiosGetRequestStatus, AxiosGetRequest, AxiosPostRequest]
 })
 
 export default class Register extends Vue{
@@ -96,6 +96,10 @@ export default class Register extends Vue{
 
   checkValidUsername = this.checkUniqueFieldsDebounce('username')
   checkValidEmail = this.checkUniqueFieldsDebounce('email')
+  sendCodeVerificationEmail(){
+    let email = vxm.user.activeUser.email
+    this.axiosPostRequest(config.server.ACTIVATE_USER, {email})
+  }
 
   async handleSubmit(){
     try{
@@ -112,6 +116,7 @@ export default class Register extends Vue{
       localStorage.setItem('token',token)
       localStorage.setItem('username', user.username)
       this.$router.replace({name:'Profile', params:{username:user.username}})
+      this.sendCodeVerificationEmail()
     }catch(e){
       console.error(e)
       this.$Message.error('There was an error adding user')

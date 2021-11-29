@@ -20,6 +20,8 @@ interface Server{
     // UNIQUE_FIELDS: string;
     CHECK_USER: string;
     CHECK_EMAIL: string;
+    ACTIVATE_USER: string;
+    CHECK_CODE: string;
 }
 
 interface Client{
@@ -54,6 +56,8 @@ const server :Server ={
     // UNIQUE_FIELDS: BASE_SERVER_URL+"/users/unique",
     CHECK_USER: BASE_SERVER_URL+"/users/checkuser/:username",
     CHECK_EMAIL: BASE_SERVER_URL+"/users/checkemail/:email",
+    ACTIVATE_USER: BASE_SERVER_URL+"/users/send_verification_code/:email",
+    CHECK_CODE: BASE_SERVER_URL+"/users/verify_code/:email",
     // TODOS_URL: BASE_SERVER_URL+"/todos/:username",
     // TODOS_BULK_URL: BASE_SERVER_URL+"/todos/:username/group",
     TOKENS_URL: BASE_SERVER_URL+"/usertoken",

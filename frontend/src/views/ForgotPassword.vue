@@ -30,8 +30,8 @@ export default class ErrorMessage extends Vue{
         this.axiosPostRequest(config.server.RESET_PASSWORD, {email:this.email})
     }catch(e){
         console.error(e)
+        }
     }
-}
 }
 </script>
 

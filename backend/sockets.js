@@ -42,8 +42,8 @@ function releaseList(listData){
 function lockPageForUser(pageData){
     if(!pageData.pageName || !pageData.username || !pageData.socketId)
         return console.error('ERROR! one or more required pagelock datafields are missing')
-    let connectionIndex = activeConnections.findIndex(connection=>connection.id==listData.socketId)
-    if(conenctionIndex == -1)
+    let connectionIndex = activeConnections.findIndex(connection=>connection.id==pageData.socketId)
+    if(connectionIndex == -1)
         return console.error(`ERROR! socket ${pageData.socketId} attempted to lock a page but it was no active connections`)
     let lockedPageIndex = lockedPages.findIndex(item=>item.pageName==pageData.pageName && item.username == pageData.username)
     if(lockedPageIndex==-1)

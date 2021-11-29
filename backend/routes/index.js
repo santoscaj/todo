@@ -9,9 +9,10 @@ const router = express.Router()
 const {User } = require('../sq')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
-const {sendUserPasswordEmail, sendUserVerificationEmail, generateRandomPassword} = require('../utils/emailSender')
+const {sendUserPasswordEmail, sendUserVerificationEmail, generateRandomPassword, generateRandomDigits} = require('../utils/emailSender')
 const { getUserInfo } = require('../middleware')
 const {v4} = require('uuid')
+const redis = require('../redis')
 
 const SALT = Number(process.env.SALT)
 
@@ -64,6 +65,29 @@ router.post('/users/reset_password/:email', async (req, res)=>{
   res.sendStatus(200)
 })
 
+router.post('/users/send_verification_code/:email', async (req, res)=>{
+  let email = req.params.email
+  if(!email) return res.sendStatus(400)
+  let userData = await User.findOne({where:{email}})
+  if(!userData) return res.sendStatus(404)
+  let code = generateRandomDigits(6)
+  await redis.setKey(email, code)
+  sendUserVerificationEmail(userData, code)
+  let value = await redis.getValue(email)
+  res.sendStatus(200)
+})
+
+router.post('/users/verify_code/:email', async (req, res)=>{
+  let email = req.params.email
+  let code = req.body.code
+  if(!email) return res.sendStatus(400)
+  let value = await redis.getValue(email)
+  console.log(value,code)
+  if(value != code) return res.sendStatus(401)
+  let updatedUser = await User.update( {account_is_active: true },{where:{email}})
+  res.status(200).send({user: updatedUser})
+})
+
 
 router.post('/login', async (req, res)=>{
   let userData = req.body
@@ -95,14 +119,12 @@ router.get('/activeuser', async (req, res)=>{
   }
 })
 
-
 router.get('/users/checkuser/:username', async (req, res)=>{
   let username = req.params.username
   let queryResults = await User.findOne({where:{username}})
   if(queryResults) return res.status(200).send({result: true})
   res.status(200).send({result: false})
 })
-
 
 router.get('/users/checkemail/:email', async (req, res)=>{
   let email = req.params.email
